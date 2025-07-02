@@ -11,4 +11,10 @@
 3. 设计部门表
 
 
-f
+4. 自定义初始化命令
+    在oaauth应用下创建commands文件夹
+    在commands文件夹下创建initdepartments.py文件
+    编写初始化命令代码
+    python manage.py initdepartments
+
+5. 
