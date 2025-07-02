@@ -97,8 +97,8 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'xingoa',
         'USER': 'root',
-        'PASSWORD': 'rootroot',
-        'HOST': '127.0.0.1',
+        'PASSWORD': 'root',
+        'HOST': '182.61.13.121',
         'PORT': 3306
     }
 }

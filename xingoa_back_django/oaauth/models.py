@@ -3,8 +3,9 @@ from django.db import models
 # Create your models here.
 
 # 重写User类
-from django.contrib.auth.models import User, AbstractBaseUser, PermissionsMixin, BaseUserManager, UserManager
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.contrib.auth.hashers import make_password
+from shortuuidfield import ShortUUIDField
 
 class OAUserManager(BaseUserManager):
     use_in_migrations = True
@@ -52,7 +53,7 @@ class OAUserManager(BaseUserManager):
         return self._create_user(username, email, password, **extra_fields)
 
 
-
+ 
 class UserStatusChioces(models.IntegerChoices):
     """用户状态枚举（使用IntegerChoices正确映射数值和标签）"""
     ACTIVED = (1, '已激活')     # 格式：(值, '标签')
@@ -66,7 +67,7 @@ class OAUser(AbstractBaseUser, PermissionsMixin):
 
     Username and password are required. Other fields are optional.
     """
-
+    uid = ShortUUIDField(primary_key=True)
     username = models.CharField(max_length=150, unique=True)
     email = models.EmailField(unique=True, blank=False)
     phone = models.CharField(max_length=20, blank=True)
@@ -75,6 +76,8 @@ class OAUser(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     date_joined = models.DateTimeField(auto_now_add=True)
 
+    department = models.ForeignKey('OADepartment', null=True, on_delete=models.SET_NULL, related_name='staffs', related_query_name='staffs')
+    
     objects = OAUserManager()
 
     EMAIL_FIELD = "email"
@@ -92,3 +95,11 @@ class OAUser(AbstractBaseUser, PermissionsMixin):
     def get_short_name(self):
         return self.username
 
+
+
+class OADepartment(models.Model):
+    name = models.CharField(max_length=64)
+    intro = models.CharField(max_length=200)
+    # 每个部门只能有一个leader
+    leader = models.OneToOneField(OAUser, null=True, on_delete=models.SET_NULL, related_name='leader_department', related_query_name='leader_department')
+    manager = models.ForeignKey(OAUser, null=True, on_delete=models.SET_NULL, related_name='manager_departments', related_query_name = 'manager_departments')
