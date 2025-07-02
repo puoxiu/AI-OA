@@ -40,9 +40,13 @@ INSTALLED_APPS = [
 
     # 安装framework
     'rest_framework',
+
+    # 跨域问题
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',    # 跨域中间件
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -52,6 +56,9 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# 允许所有域名跨域访问（开发环境）
+CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = 'xingoa_back_django.urls'
 
