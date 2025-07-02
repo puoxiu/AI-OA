@@ -43,6 +43,9 @@ INSTALLED_APPS = [
 
     # 跨域问题
     'corsheaders',
+
+    # 自定义app
+    'oaauth'
 ]
 
 MIDDLEWARE = [
@@ -141,3 +144,7 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# 覆盖django自带的user模型
+AUTH_USER_MODEL = 'oaauth.OAUser'
