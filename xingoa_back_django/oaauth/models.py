@@ -30,7 +30,7 @@ class OAUserManager(BaseUserManager):
         """
         创建普通用户， 默认未激活
         """
-        extra_fields.setdefault('status', UserStatusChioces.UNACTIVED)
+        extra_fields.setdefault('status', UserStatusChoices.UNACTIVED)
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", False)
         return self._create_user(username, email, password, **extra_fields)
@@ -41,7 +41,7 @@ class OAUserManager(BaseUserManager):
         """
             创建超级用户， 默认激活
         """
-        extra_fields.setdefault('status', UserStatusChioces.ACTIVED)
+        extra_fields.setdefault('status', UserStatusChoices.ACTIVED)
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
 
@@ -53,12 +53,11 @@ class OAUserManager(BaseUserManager):
         return self._create_user(username, email, password, **extra_fields)
 
 
- 
-class UserStatusChioces(models.IntegerChoices):
+class UserStatusChoices(models.IntegerChoices):
     """用户状态枚举（使用IntegerChoices正确映射数值和标签）"""
     ACTIVED = (1, '已激活')     # 格式：(值, '标签')
     UNACTIVED = (2, '未激活')
-    LOCK = (3, '已锁定')
+    LOCKED = (3, '已锁定')
 
 class OAUser(AbstractBaseUser, PermissionsMixin):
     """
@@ -72,7 +71,7 @@ class OAUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True, blank=False)
     phone = models.CharField(max_length=20, blank=True)
     is_staff = models.BooleanField(default=True)
-    status = models.IntegerField(choices=UserStatusChioces.choices, default=UserStatusChioces.UNACTIVED, blank=False)
+    status = models.IntegerField(choices=UserStatusChoices.choices, default=UserStatusChoices.UNACTIVED, blank=False)
     is_active = models.BooleanField(default=True)
     date_joined = models.DateTimeField(auto_now_add=True)
 

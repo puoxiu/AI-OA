@@ -16,5 +16,8 @@
     在commands文件夹下创建initdepartments.py文件
     编写初始化命令代码
     python manage.py initdepartments
+    python manage.py inituser
 
-5. 
+5. 登录
+    views
+    urls 添加
