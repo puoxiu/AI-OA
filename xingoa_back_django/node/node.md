@@ -8,7 +8,9 @@
     pip install django-cors-headers
 
 4. 添加auth模块
-    apps/oaauth
+    python manage.py 
+    安装新的app：在settings.py中
+
     修改user模型
     模型迁移
     python manage.py makemigrations
@@ -29,3 +31,8 @@
 
 运行：
 python manage.py 
+
+8. 添加中间件
+    修改密码
+
+9. 

@@ -45,7 +45,8 @@ INSTALLED_APPS = [
     'corsheaders',
 
     # 自定义app
-    'oaauth'
+    'oaauth',
+    'absent',
 ]
 
 MIDDLEWARE = [
