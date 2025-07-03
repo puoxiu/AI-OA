@@ -35,4 +35,7 @@ python manage.py
 8. 添加中间件
     修改密码
 
-9. 
+9. 定义考勤模型
+    python manage.py startapp absent
+    python manage.py makemigrations
+    python manage.py migrate
