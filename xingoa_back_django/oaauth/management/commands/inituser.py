@@ -103,4 +103,4 @@ class Command(BaseCommand):
         finance.save()
 
         # 打印结果
-        self.stdout.write(self.style.SUCCESS('部门初始化完成'))
+        self.stdout.write(self.style.SUCCESS('部门领导人员初始化完成'))

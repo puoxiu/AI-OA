@@ -31,11 +31,11 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
+    # 'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
+    # 'django.contrib.sessions',
+    # 'django.contrib.messages',
     'django.contrib.staticfiles',
 
     # 安装framework
@@ -51,13 +51,15 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',    # 跨域中间件
     'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
+    # 'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     # 关闭csrf保护
     # 'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
+    # 'django.contrib.auth.middleware.AuthenticationMiddleware',
+    # 'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # 认证中间件
+    'oaauth.middlewares.LoginCheckMiddleware'
 ]
 
 # 允许所有域名跨域访问（开发环境）
@@ -74,7 +76,7 @@ TEMPLATES = [
             'context_processors': [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+                # 'django.contrib.messages.context_processors.messages',
             ],
         },
     },
@@ -92,16 +94,29 @@ WSGI_APPLICATION = 'xingoa_back_django.wsgi.application'
 #         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
+# home
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'xingoa',
+#         'USER': 'root',
+#         'PASSWORD': 'root',
+#         'HOST': '182.61.13.121',
+#         'PORT': 3306
+#     }
+# }
+# work
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'xingoa',
         'USER': 'root',
-        'PASSWORD': 'root',
-        'HOST': '182.61.13.121',
+        'PASSWORD': 'Root@12345',
+        'HOST': '192.168.207.201',
         'PORT': 3306
     }
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -148,3 +163,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # 覆盖django自带的user模型
 AUTH_USER_MODEL = 'oaauth.OAUser'
+
+# 认证配置
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'oaauth.authentications.UserTokenAuthentication'
+    ]
+}
