@@ -169,5 +169,9 @@ AUTH_USER_MODEL = 'oaauth.OAUser'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'oaauth.authentications.UserTokenAuthentication'
-    ]
+    ],
+    
+    # 指定分页类
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,  # 每页显示10条请假记录
 }

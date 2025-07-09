@@ -30,7 +30,7 @@
 7. 登录： views urls 添加
 
 运行：
-python manage.py 
+python manage.py runserver
 
 8. 添加中间件
     修改密码
