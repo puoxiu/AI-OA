@@ -41,3 +41,8 @@ python manage.py
     python manage.py makemigrations
     python manage.py migrate
 
+10. 自定义初始化命令--考勤类型
+    > 同上文创建自定义命令的流程
+    python manage.py initabsenttype
+
+
