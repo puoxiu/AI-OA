@@ -37,5 +37,7 @@ python manage.py
 
 9. 定义考勤模型
     python manage.py startapp absent
+    定义模型
     python manage.py makemigrations
     python manage.py migrate
+
