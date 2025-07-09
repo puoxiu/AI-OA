@@ -16,6 +16,7 @@ class AbsentTypeSerializer(serializers.ModelSerializer):
 
 
 class AbsentSerializer(serializers.ModelSerializer):
+    # 嵌套序列化
     absent_type = AbsentTypeSerializer(read_only=True)
     absent_type_id = serializers.IntegerField(write_only=True)
     requester = UserSerializer(read_only=True)
@@ -32,9 +33,10 @@ class AbsentSerializer(serializers.ModelSerializer):
             raise exceptions.ValidationError("考勤类型不存在！")
         return value
 
-    # create 在视图层使用 serializer.save() 创建新对象时，会自动调用 create() 方法
+    # create 在视图层使用 serializer.save() 创建新对象时（创建新的考勤事件），会自动调用 create() 方法
     def create(self, validated_data):
         request = self.context['request']
+        # 发起者就是当前用户
         user = request.user
         # 获取审批者
         responder = get_responder(request)
@@ -47,7 +49,7 @@ class AbsentSerializer(serializers.ModelSerializer):
         absent = Absent.objects.create(**validated_data, requester=user, responder=responder)
         return absent
 
-    # update
+    # update--审批考勤
     def update(self, instance, validated_data):
         if instance.status != AbsentStatusChoices.AUDITING:
             raise exceptions.APIException(detail='不能修改已经确定的请假数据！')

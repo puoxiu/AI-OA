@@ -96,27 +96,27 @@ WSGI_APPLICATION = 'xingoa_back_django.wsgi.application'
 #     }
 # }
 # home
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'xingoa',
-        'USER': 'root',
-        'PASSWORD': 'root',
-        'HOST': '182.61.13.121',
-        'PORT': 3306
-    }
-}
-# # work
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.mysql',
 #         'NAME': 'xingoa',
 #         'USER': 'root',
-#         'PASSWORD': 'Root@12345',
-#         'HOST': '192.168.207.201',
+#         'PASSWORD': 'root',
+#         'HOST': '182.61.13.121',
 #         'PORT': 3306
 #     }
 # }
+# # work
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'xingoa',
+        'USER': 'root',
+        'PASSWORD': 'rootroot',
+        'HOST': '192.168.207.201',
+        'PORT': 3306
+    }
+}
 
 
 # Password validation
