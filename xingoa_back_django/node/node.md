@@ -45,4 +45,10 @@ python manage.py runserver
     > 同上文创建自定义命令的流程
     python manage.py initabsenttype
 
+##  通知模块
+    python manage.py startapp inform
+    莫忘记在settings中安装新的app
 
+11. 模型创建
+    python manage.py makemigrations
+    python manage.py migrate

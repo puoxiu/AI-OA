@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     # 自定义app
     'oaauth',
     'absent',
+    'inform',
 ]
 
 MIDDLEWARE = [
