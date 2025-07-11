@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'oaauth',
     'absent',
     'inform',
+    'staff',
 ]
 
 MIDDLEWARE = [

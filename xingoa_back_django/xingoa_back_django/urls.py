@@ -21,5 +21,6 @@ urlpatterns = [
     # path('admin/', admin.site.urls),
     path('auth/', include('oaauth.urls')),
     path('', include('absent.urls')),
-    path('', include('inform.urls'))
+    path('inform/', include('inform.urls')),
+    path('staff/', include('staff.urls')),
 ]
