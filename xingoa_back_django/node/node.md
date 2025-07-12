@@ -49,6 +49,11 @@ python manage.py runserver
     python manage.py startapp inform
     莫忘记在settings中安装新的app
 
+* 通知谁能看到：通知列表
+    * inform.public = true
+    * inform.departments包含了所在部门
+    * 通知发布者：inform.author = request.user
+
 11. 模型创建
     python manage.py makemigrations
     python manage.py migrate
