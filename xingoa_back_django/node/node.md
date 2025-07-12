@@ -52,3 +52,6 @@ python manage.py runserver
 11. 模型创建
     python manage.py makemigrations
     python manage.py migrate
+
+12. 图片上传
+
