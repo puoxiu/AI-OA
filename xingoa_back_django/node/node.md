@@ -59,4 +59,9 @@ python manage.py runserver
     python manage.py migrate
 
 12. 图片上传
+    注意文件目录
+    文件类型、大小的校验
+
+13. 新增员工
+
 

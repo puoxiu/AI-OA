@@ -179,3 +179,29 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,  # 每页显示10条请假记录
 }
+
+# 邮箱配置
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.qq.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = '896178977@qq.com'
+EMAIL_HOST_PASSWORD = 'taeqetcfhrsxdajh'
+DEFAULT_FROM_EMAIL = '896178977@qq.com'
+
+
+
+# CELERY相关配置
+# 中间人的配置
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379/1'
+CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/2'
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+
+
+# 缓存设置
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/3",
+    }
+}
