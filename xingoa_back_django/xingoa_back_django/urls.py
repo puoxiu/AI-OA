@@ -24,4 +24,5 @@ urlpatterns = [
     path('inform/', include('inform.urls')),
     path('staff/', include('staff.urls')),
     path('image/', include('image.urls')),
+    path('home/', include('home.urls'))
 ]
