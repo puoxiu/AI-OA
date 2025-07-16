@@ -20,6 +20,6 @@ class OAUser(Base):
     is_staff = Column(Integer, default=1)
     status = Column(Integer, default=UserStatusChoices.UNACTIVED)
     date_joined = Column(DATETIME(fsp=6), server_default=func.now())
-    password = Column(String(128))
+    password_hashed = Column(String(64))
     last_login = Column(DateTime, nullable=True)
 
