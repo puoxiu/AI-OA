@@ -8,7 +8,7 @@ from app.models.user import OAUser, UserStatusChoices
 from deps.deps import get_db_session
 from app.services.auth import UserService
 from utils.hash import verify_password
-from core.auth import AuthTokenHelper
+from app.core.auth import AuthTokenHelper
 
 
 router = APIRouter(

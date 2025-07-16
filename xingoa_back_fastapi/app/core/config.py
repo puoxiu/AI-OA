@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     APP_NAME: str = "xingoa_基于AI的OA系统"
     APP_VERSION: str = "1.0.0"
 
-    DATABASE_URL: str
+    ASYNC_DATABASE_URL: str
     SECRET_KEY: str
     ALGORITHM: str
     JWT_TOKEN_EXPIRE_MINUTES: int

@@ -8,7 +8,6 @@ from app.core.config import settings
 from db.database import async_engine, Base
 from app.api.v1 import auth
 
-
 # 生命周期管理器
 # 仅在开发环境推荐使用
 @asynccontextmanager
