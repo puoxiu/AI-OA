@@ -1,7 +1,9 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from sqlalchemy.ext.asyncio import AsyncEngine
 from contextlib import asynccontextmanager
 from sqlalchemy import text
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 
 
 from app.core.config import settings
@@ -37,6 +39,9 @@ app = FastAPI(
     version=settings.APP_VERSION,
     lifespan=lifespan
 )
+
+# 自定义异常处理器
+
 
 app.include_router(auth.router)
 
