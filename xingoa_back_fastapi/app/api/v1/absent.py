@@ -1,10 +1,10 @@
 # AI-OA/xingoa_back_fastapi/app/api/v1/absent.py
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
-from app.schemas.absent import AbsentCreateResponse, AbsentCreateRequest, AbsentUpdate
-from app.services.absent import AbsentService
+from app.schemas.absent import AbsentCreateResponse, AbsentCreateRequest, AbsentTypeResponse
+from app.services.absent import AbsentService, AbsentTypeService
 from deps.deps import get_db_session
 from app.core.auth import AuthTokenHelper
 from app.models.user import OAUser
@@ -16,11 +16,30 @@ router = APIRouter(
     tags=["考勤管理"]
 )
 
+# 获取类型
+from typing import List
+@router.get("/type", response_model=List[AbsentTypeResponse])
+async def get_absent_type(
+    db_session: AsyncSession = Depends(get_db_session),
+    token: str = Depends(AuthTokenHelper.get_token)
+):
+    """
+    获取请假类型
+    """
+    payload = AuthTokenHelper.token_decode(token)
+    if not payload:
+        raise HTTPException(status_code=401, detail="请先登录！")
 
-@router.post("/", response_model=AbsentCreateResponse)
+    absent_types = await AbsentTypeService.get_all_absent_type(db_session)
+    # 将ORM对象转换为Pydantic模型列表
+    # return [AbsentTypeResponse.model_validate(type) for type in absent_types]
+    return absent_types
+
+
+@router.post("/")
 async def create_new_absent(
     absent: AbsentCreateRequest,
-    db: AsyncSession = Depends(get_db_session),
+    db_session: AsyncSession = Depends(get_db_session),
     token: str = Depends(AuthTokenHelper.get_token)
 ):
     """
@@ -31,54 +50,107 @@ async def create_new_absent(
         raise HTTPException(status_code=401, detail="请先登录！")
     
     email = payload.get("email")
-    user = await UserService.get_user_by_email(db, email)
+    user = await UserService.get_user_by_email(db_session, email)
     if not user:
         raise HTTPException(status_code=400, detail="用户不存在")
     
-    # 这里需要实现获取审批者的逻辑? await?
-    responder = await get_responder(user)
+    # 这里需要实现获取审批者的逻辑
 
-    new_absent = await AbsentService.create_absent(db, absent, user.uid, responder.uid)
-    return new_absent
+    responder = get_responder(user)
+    if responder is None:
+        raise HTTPException(status_code=500, detail="这里错误")
 
+    new_absent = await AbsentService.create_absent(db_session, absent, user.uid, responder.uid)
+    return Response(
+        content="请假成功!"
+    )
 
-# @router.get("/", response_model=list[AbsentCreateResponse])
-# async def get_all_absents(
-#     who: str = None,
-#     db: AsyncSession = Depends(get_db_session),
-#     token: str = Depends(AuthTokenHelper.get_token)
-# ):
-#     payload = AuthTokenHelper.token_decode(token)
-#     if not payload:
-#         raise HTTPException(status_code=401, detail="无效的令牌")
-#     email = payload.get("email")
-#     user = await UserService.get_user_by_email(db, email)
-#     if not user:
-#         raise HTTPException(status_code=400, detail="用户不存在")
-#     if who and who == 'sub':
-#         absents = await get_absents(db, responder_id=user.uid)
-#     else:
-#         absents = await get_absents(db, requester_id=user.uid)
-#     return absents
+# 查看自己的所有请求
+@router.get("/my_absents", response_model=list[AbsentCreateResponse])
+async def get_all_absents(
+    db_session: AsyncSession = Depends(get_db_session),
+    token: str = Depends(AuthTokenHelper.get_token)
+):
+    payload = AuthTokenHelper.token_decode(token)
+    if not payload:
+        raise HTTPException(status_code=401, detail="请先登录！")
+    
+    email = payload.get("email")
+    user = await UserService.get_user_by_email(db_session, email)
+    if not user:
+        raise HTTPException(status_code=400, detail="用户不存在")
+    
+    try:
+        my_absents = await AbsentService.get_all_absent_by_requester_uid(
+            db_session=db_session,
+            requester_uid=user.uid
+        )
+        
+        # 直接返回 ORM 实例列表，FastAPI 会自动通过 response_model 验证并转换
+        return my_absents
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"获取请假记录失败：{str(e)}"
+        )
 
-# @router.put("/{absent_id}", response_model=AbsentSerializer)
-# async def update_absent_info(
-#     absent_id: int,
-#     absent_update: AbsentUpdate,
-#     db: AsyncSession = Depends(get_db_session),
-#     token: str = Depends(AuthTokenHelper.get_token)
-# ):
-#     payload = AuthTokenHelper.token_decode(token)
-#     if not payload:
-#         raise HTTPException(status_code=401, detail="无效的令牌")
-#     email = payload.get("email")
-#     user = await UserService.get_user_by_email(db, email)
-#     if not user:
-#         raise HTTPException(status_code=400, detail="用户不存在")
-#     absent = await get_absent_by_id(db, absent_id)
-#     if not absent:
-#         raise HTTPException(status_code=404, detail="考勤记录不存在")
-#     if absent.responder_id != user.uid:
-#         raise HTTPException(status_code=403, detail="您无权处理该考勤！")
-#     updated_absent = await update_absent(db, absent_id, absent_update)
-#     return updated_absent
+# 查看下属的所有请假请求
+@router.get("/my_all_staffs_absents", response_model=list[AbsentCreateResponse])
+async def get_all_absents(
+    db_session: AsyncSession = Depends(get_db_session),
+    token: str = Depends(AuthTokenHelper.get_token)
+):
+    payload = AuthTokenHelper.token_decode(token)
+    if not payload:
+        raise HTTPException(status_code=401, detail="请先登录！")
+    
+    email = payload.get("email")
+    user = await UserService.get_user_by_email(db_session, email)
+    if not user:
+        raise HTTPException(status_code=400, detail="用户不存在")
+    
+    try:
+        my_absents = await AbsentService.get_all_absent_by_responder_uid(
+            db_session=db_session,
+            responder_uid=user.uid
+        )
+        
+        # 直接返回 ORM 实例列表，FastAPI 会自动通过 response_model 验证并转换
+        return my_absents
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"获取请假记录失败：{str(e)}"
+        )
+
+# 查看还未处理的下属请假请求
+@router.get("/my_staffs_absents", response_model=list[AbsentCreateResponse])
+async def get_all_absents(
+    db_session: AsyncSession = Depends(get_db_session),
+    token: str = Depends(AuthTokenHelper.get_token)
+):
+    payload = AuthTokenHelper.token_decode(token)
+    if not payload:
+        raise HTTPException(status_code=401, detail="请先登录！")
+    
+    email = payload.get("email")
+    user = await UserService.get_user_by_email(db_session, email)
+    if not user:
+        raise HTTPException(status_code=400, detail="用户不存在")
+    
+    try:
+        my_absents = await AbsentService.get_all_absent_by_responder_uid_and_status(
+            db_session=db_session,
+            responder_uid=user.uid
+        )
+        
+        # 直接返回 ORM 实例列表，FastAPI 会自动通过 response_model 验证并转换
+        return my_absents
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"获取请假记录失败：{str(e)}"
+        )
+
+# 处理下属请假请求：必须status = 0；其它值则不可处理---即每个请假需求只处理一次
+

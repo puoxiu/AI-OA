@@ -4,7 +4,8 @@ from datetime import datetime, timedelta
 from app.core.config import settings
 
 from datetime import datetime, timezone
-
+from fastapi import Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 class AuthTokenHelper:
     @staticmethod
@@ -21,9 +22,17 @@ class AuthTokenHelper:
         try:
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=settings.ALGORITHM)
             return payload
+        # todo ？ 
         except jwt.ExpiredSignatureError:
             # Token 已过期
             return None
-        except jwt.InvalidTokenError:
+        except:
             # Token 无效
             return None
+
+    @staticmethod
+    def get_token(credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer())) -> str:
+        """从请求头中获取并验证令牌"""
+        if not credentials:
+            raise HTTPException(status_code=401, detail="认证失败")
+        return credentials.credentials

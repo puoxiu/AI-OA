@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 
 from app.core.config import settings
 from db.database import async_engine, Base
-from app.api.v1 import auth
+from app.api.v1 import auth, absent
 
 # 生命周期管理器
 # 仅在开发环境推荐使用
@@ -44,6 +44,7 @@ app = FastAPI(
 
 
 app.include_router(auth.router)
+app.include_router(absent.router)
 
 if __name__ == "__main__":
     import uvicorn

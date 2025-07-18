@@ -15,6 +15,7 @@ class AbsentType(Base):
     create_time = Column(DateTime, server_default=func.now())
     absents = relationship("Absent", back_populates="absent_type")
 
+
 class AbsentStatusChoices:
     # 审批中
     AUDITING = 1
@@ -35,16 +36,11 @@ class Absent(Base):
     create_time = Column(DateTime, server_default=func.now())
     response_content = Column(Text, nullable=True)
 
-    requester_id = Column(Integer, ForeignKey('oa_user.uid'))
-    requester = relationship("OAUser", backref="my_absents", foreign_keys=[requester_id])
+    requester_uid = Column(String(22), ForeignKey('oa_user.uid'))
+    requester = relationship("OAUser", backref="my_absents", foreign_keys=[requester_uid])
 
-    responder_id = Column(Integer, ForeignKey('oa_user.uid'), nullable=True)
-    responder = relationship("OAUser", backref="sub_absents", foreign_keys=[responder_id])
+    responder_uid = Column(String(22), ForeignKey('oa_user.uid'), nullable=True)
+    responder = relationship("OAUser", backref="sub_absents", foreign_keys=[responder_uid])
 
     absent_type_id = Column(Integer, ForeignKey('absent_type.id'))
     absent_type = relationship("AbsentType", back_populates="absents")
-
-    __table_args__ = (
-        # 按创建时间降序排序
-        {'order_by': '-create_time'},
-    )
