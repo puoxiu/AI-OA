@@ -153,4 +153,38 @@ async def get_all_absents(
         )
 
 # 处理下属请假请求：必须status = 0；其它值则不可处理---即每个请假需求只处理一次
+@router.patch("/my_staffs_absents")
+async def process_new_absents(
+    absent_id: int,
+    status: int,
+    db_session: AsyncSession = Depends(get_db_session),
+    token: str = Depends(AuthTokenHelper.get_token)
+):
+    payload = AuthTokenHelper.token_decode(token)
+    if not payload:
+        raise HTTPException(status_code=401, detail="请先登录！")
+    
+    email = payload.get("email")
+    user = await UserService.get_user_by_email(db_session, email)
+    if not user:
+        raise HTTPException(status_code=400, detail="用户不存在")
+    
+    # 检查请假请求是否存在
+    absent = await AbsentService.get_absent_by_id(db_session, absent_id)
+    if not absent:
+        raise HTTPException(status_code=404, detail="请假请求不存在")
+    
+    # 检查请假请求是否由当前用户处理
+    if absent.responder_uid != user.uid:
+        raise HTTPException(status_code=403, detail="您没有权限处理该请假请求")
+    
+    # 检查请假请求状态是否为0
+    if absent.status != 0:
+        raise HTTPException(status_code=400, detail="该请假请求已处理")
+    
+    # 更新请假请求状态
+    try:
+        await AbsentService.update_absent_status(db_session, absent_id, status)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"更新请假请求状态失败：{str(e)}")
 

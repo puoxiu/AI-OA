@@ -55,3 +55,21 @@ class AbsentService:
         result = await db_session.execute(query)
 
         return result.scalars().all()
+    
+    @staticmethod
+    async def get_absent_by_id(db_session: AsyncSession, absent_id: int):
+        query = select(Absent).where(Absent.id == absent_id)
+        result = await db_session.execute(query)
+        return result.scalar()
+
+    @staticmethod
+    async def update_absent_status(db_session: AsyncSession, absent_id: int, status: int):
+        query = (
+            update(Absent)
+            .where(Absent.id == absent_id)
+            .values(status=status)
+        )
+        await db_session.execute(query)
+        await db_session.commit()
+
+    
