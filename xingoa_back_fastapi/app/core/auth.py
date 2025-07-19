@@ -33,6 +33,7 @@ class AuthTokenHelper:
     @staticmethod
     def get_token(credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer())) -> str:
         """从请求头中获取并验证令牌"""
+        print("=====")
         if not credentials:
             raise HTTPException(status_code=401, detail="认证失败")
         return credentials.credentials
