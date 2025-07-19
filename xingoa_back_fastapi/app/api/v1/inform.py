@@ -4,8 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.schemas.inform import InformsResponse, InformCreateRequest
 from app.services.inform import InformService
-from deps.deps import get_db_session
-from app.core.common import get_current_user
+from deps.deps import get_db_session, get_current_user
+
 from app.models.inform import Inform
 from app.models.user import OAUser
 
