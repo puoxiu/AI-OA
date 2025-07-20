@@ -11,6 +11,18 @@ class Settings(BaseSettings):
     ALGORITHM: str
     JWT_TOKEN_EXPIRE_MINUTES: int
 
+    # 基础URL 用于生成激活链接
+    BASE_URL: str
+    # 用于加密的密钥
+    SECRET_KEY: str
+
+    # 邮件服务
+    EMAIL_FROM: str
+    SMTP_HOST: str
+    SMTP_PORT: int
+    SMTP_USER: str
+    SMTP_PASSWORD: str
+
     class Config:
         env_file = ".env"
 

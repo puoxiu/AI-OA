@@ -47,6 +47,18 @@ app.include_router(auth.router)
 app.include_router(absent.router)
 app.include_router(inform.router)
 
+# 测试邮箱发送路由
+@app.get("/test-email")
+async def test_email():
+    from utils.mailer import send_email
+    try:
+        send_email("测试邮件", ["zmx_12345@163.com"], "这是一封测试邮件")
+        return {"message": "测试邮件发送成功"}
+    except Exception as e:
+        return {"message": f"测试邮件发送失败: {e}"}
+
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8003)
