@@ -44,7 +44,7 @@ async def create_new_absent(
     if responder is None:
         raise HTTPException(status_code=500, detail="这里错误")
 
-    new_absent = await AbsentService.create_absent(db_session, absent, user.uid, responder.uid)
+    new_absent = await AbsentService.create_absent(db_session, absent, current_user.uid, responder.uid)
     return Response(
         content="请假成功!"
     )

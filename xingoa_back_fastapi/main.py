@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 
 from app.core.config import settings
 from db.database import async_engine, Base
-from app.api.v1 import auth, absent, inform
+from app.api.v1 import auth, absent, inform, staff
 
 # 生命周期管理器
 # 仅在开发环境推荐使用
@@ -46,6 +46,7 @@ app = FastAPI(
 app.include_router(auth.router)
 app.include_router(absent.router)
 app.include_router(inform.router)
+app.include_router(staff.router)
 
 # 测试邮箱发送路由
 @app.get("/test-email")
