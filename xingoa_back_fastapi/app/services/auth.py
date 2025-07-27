@@ -35,3 +35,12 @@ class UserService:
         )
         result = await db_session.execute(query)
         return result.scalars().first()
+
+    @staticmethod
+    async def get_user_by_username(db_session: AsyncSession, username: str):
+        query = (
+            select(OAUser)
+            .where(OAUser.username == username)
+        )
+        result = await db_session.execute(query)
+        return result.scalars().first()

@@ -6,7 +6,8 @@ from app.models.user import OAUser, UserStatusChoices
 from app.core.config import settings
 from utils.hash import get_password_hash
 from utils.aeser import AESCipher
-from utils.mailer import send_email
+# from utils.mailer import send_email
+from utils.celery_tasks import send_email_task
 
 aes = AESCipher(settings.SECRET_KEY)
 
@@ -45,6 +46,6 @@ class StaffService:
         """
 
         # 发送邮件
-        send_email(subject="oa系统账户激活", recipient_list=[email], message=message)
+        send_email_task.delay(subject="oa系统账户激活", recipient_list=[email], message=message)
 
         return new_staff

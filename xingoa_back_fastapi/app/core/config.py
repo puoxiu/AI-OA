@@ -23,6 +23,10 @@ class Settings(BaseSettings):
     SMTP_USER: str
     SMTP_PASSWORD: str
 
+    # celery 配置
+    CELERY_BROKER_URL: str
+    CELERY_RESULT_BACKEND: str
+
     class Config:
         env_file = ".env"
 

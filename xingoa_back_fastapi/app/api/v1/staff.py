@@ -32,6 +32,13 @@ async def add_staff(
             detail="该邮箱已存在",
         )
 
+    # 验证用户名是否已存在
+    if await UserService.get_user_by_username(db_session, staffReq.realname):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="该用户名已存在",
+        )
+
     # 验证当前用户是否是人事部的hr
     if current_user.department.name != "人事部":
         raise HTTPException(
@@ -41,7 +48,7 @@ async def add_staff(
 
     # 创建新员工, 会向新员工的邮箱发送激活邮件，此时员工状态为未激活；待新员工点击激活链接后，员工状态会改为已激活
     new_staff = await StaffService.create_staff(db_session, staffReq.realname, staffReq.email, staffReq.password, staffReq.department_id, staffReq.phone)
-    return JSONResponse(content={"message": "员工添加成功", "uid": new_staff.uid}, status_code=status.HTTP_201_CREATED)
+    return JSONResponse(content={"message": "添加新员工邮件发送成功", "uid": new_staff.uid}, status_code=status.HTTP_201_CREATED)
 
 
 # 用户点击激活链接，激活账户
