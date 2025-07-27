@@ -56,6 +56,10 @@ async def add_staff(
 async def activate_user(
     db_session: AsyncSession = Depends(get_db_session),
 ):
-    # 从请求参数中获取uid
-    return JSONResponse(content={"message": "激活成功"}, status_code=status.HTTP_200_OK)
-# 用户点击  
+    # 从请求参数重获取 邮箱加密生成的token
+    token = request.query_params.get("token")
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="激活链接参数错误",
+        )
