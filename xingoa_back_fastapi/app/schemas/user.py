@@ -44,3 +44,13 @@ class ResetPwdRequest(BaseModel):
 
 class ResetPwdResponse(BaseModel):
     message: str
+
+
+class OAUserResponse(BaseModel):
+    uid: str
+    username: str
+    email: str
+    # 可以根据实际需求添加更多字段
+
+    class Config:
+        from_attributes = True
