@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from sqlalchemy import text
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-
+from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
 from db.database import async_engine, Base
@@ -42,6 +42,8 @@ app = FastAPI(
 
 # 自定义异常处理器
 
+# 静态文件
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 app.include_router(auth.router)
 app.include_router(absent.router)

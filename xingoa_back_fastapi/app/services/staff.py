@@ -31,8 +31,11 @@ class StaffService:
         # 发送激活邮件
         # 这个 token 是对 email 使用 AES 加密后的结果。        
         token = aes.encrypt(email)
+        # print(f"生成的token={token}")
         # 激活链接
-        active_url = f"{settings.BASE_URL}/staff/activate?token={token}"
+        # active_url = f"{settings.BASE_URL}/staff/activate?token={token}"
+        active_url = f"{settings.BASE_URL}/static/activate_result.html?token={token}"
+
         message = f"""
         你好，{username}：
         感谢您注册xx公司oa系统。为了确保您的账户安全以及账户的正常使用，请点击以下链接激活您的账户：
@@ -49,3 +52,15 @@ class StaffService:
         send_email_task.delay(subject="oa系统账户激活", recipient_list=[email], message=message)
 
         return new_staff
+    
+    @staticmethod
+    def decrypt_token(token: str) -> str:
+        # 返回解密的email
+        return aes.decrypt(token)
+    
+
+    @staticmethod
+    async def activate_staff(user: OAUser, db_session: AsyncSession):
+        user.status = UserStatusChoices.ACTIVED
+        db_session.add(user)
+        await db_session.commit()
