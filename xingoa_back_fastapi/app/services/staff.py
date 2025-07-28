@@ -1,6 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 import shortuuid
+from sqlalchemy.orm import joinedload
+from sqlalchemy import func
 
 from app.models.user import OAUser, UserStatusChoices
 from app.core.config import settings
@@ -8,6 +10,8 @@ from utils.hash import get_password_hash
 from utils.aeser import AESCipher
 # from utils.mailer import send_email
 from utils.celery_tasks import send_email_task
+from app.schemas.paginate import PaginatedResponse
+from app.schemas.staff import StaffResponse
 
 aes = AESCipher(settings.SECRET_KEY)
 
@@ -64,3 +68,53 @@ class StaffService:
         user.status = UserStatusChoices.ACTIVED
         db_session.add(user)
         await db_session.commit()
+
+
+    @staticmethod
+    async def get_staff_list(db_session: AsyncSession, page: int = 1, page_size: int = 10, department_id: int = None,
+    sort_field: str = "id", sort_order: str = "desc"):
+        try:
+            # 基础查询
+            query = select(OAUser).options(
+                joinedload(OAUser.department)
+            )
+            
+            # 筛选条件
+            if department_id:
+                query = query.filter(OAUser.department_id == department_id)
+            
+            # 计算总记录数（单独查询，不包含分页逻辑）
+            count_query = select(func.count(OAUser.uid))
+            if department_id:
+                count_query = count_query.filter(OAUser.department_id == department_id)
+            
+            total_result = await db_session.execute(count_query)
+            total = total_result.scalar() or 0
+            
+            # 处理排序
+            if hasattr(OAUser, sort_field):
+                sort_expr = getattr(OAUser, sort_field)
+                if sort_order.lower() == "desc":
+                    sort_expr = sort_expr.desc()
+                query = query.order_by(sort_expr)
+            
+            # 分页
+            offset = (page - 1) * page_size
+            query = query.offset(offset).limit(page_size)
+            
+            # 执行查询
+            result = await db_session.execute(query)
+            staff_list = result.scalars().all()
+            
+            # 将 ORM 对象列表转换为 Pydantic 模型列表
+            staff_list = [StaffResponse.from_orm(staff) for staff in staff_list]
+
+            return PaginatedResponse(
+                total=total,
+                page=page,
+                page_size=page_size,
+                items=staff_list
+            )
+        except Exception as e:
+            await db_session.rollback()
+            raise e

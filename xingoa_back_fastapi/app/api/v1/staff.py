@@ -8,7 +8,8 @@ from app.services.auth import UserService
 from app.schemas.staff import AddStaffRequest
 from deps.deps import get_db_session, get_current_user
 from app.models.user import OAUser, UserStatusChoices
-
+from app.schemas.paginate import PaginatedResponse
+from app.schemas.staff import StaffResponse
 
 router = APIRouter(
     prefix="/api/v1/staff",
@@ -110,7 +111,25 @@ async def activate_user(
         )
     
 
-
+# 员工列表， 支持分页 + 筛选
+# 必须是人事部的hr或者董事会才能获取员工列表
+@router.get("/list", response_model=PaginatedResponse[StaffResponse])
+async def get_staff_list(
+    page: int = 1,
+    page_size: int = 10,
+    department_id: int = None,
+    db_session: AsyncSession = Depends(get_db_session),
+    current_user: OAUser = Depends(get_current_user),
+):
+    if current_user.department.name not in ["人事部", "董事会"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="只有人事部的hr或者董事会才能获取员工列表",
+        )
+    
+    # 获取员工列表， 可以分页 + 筛选 + 排序
+    staff_list = await StaffService.get_staff_list(db_session, page, page_size, department_id, "id", "desc")
+    return staff_list
 
 
 
