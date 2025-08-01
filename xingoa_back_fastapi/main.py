@@ -5,10 +5,13 @@ from sqlalchemy import text
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from db.database import async_engine, Base
 from app.api.v1 import auth, absent, inform, staff, department
+from app.exceptions import BizException
+from app.error import ErrorCode
 
 # 生命周期管理器
 # 仅在开发环境推荐使用
@@ -40,7 +43,44 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# 配置跨域
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 允许哪些源访问，* 表示所有（不推荐生产用）
+    allow_credentials=True,
+    allow_methods=["*"],  # 允许所有 HTTP 方法
+    allow_headers=["*"],  # 允许所有请求头
+)
+
 # 自定义异常处理器
+@app.exception_handler(BizException)
+async def biz_exception_handler(request: Request, exc: BizException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "code": exc.detail["code"],
+            "msg": exc.detail["msg"]
+        }
+    )
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    # logging.error("Unhandled Exception", exc_info=exc)
+    return JSONResponse(
+        status_code=500,
+        content={
+            "code": ErrorCode.SERVER_ERROR,
+            "msg": "服务器内部错误，请联系管理员！"
+        }
+    )
+# 处理请求验证失败（如参数格式错误）
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    return JSONResponse(
+        status_code=422,
+        content={
+            "msg": "请求参数校验失败，请检查请求内容和格式！"
+        }
+    )
 
 # 静态文件
 app.mount("/static", StaticFiles(directory="static"), name="static")

@@ -42,9 +42,6 @@ class ResetPwdRequest(BaseModel):
             raise ValueError("两个新密码不一致！")
         return v
 
-class ResetPwdResponse(BaseModel):
-    message: str
-
 
 class OAUserResponse(BaseModel):
     uid: str

@@ -40,8 +40,6 @@ class InformService:
             for inform in informs
         ]
 
-
-
     @staticmethod
     async def get_inform_by_id(db_session: AsyncSession, inform_id: int):
         query = select(Inform).where(Inform.id == inform_id)
@@ -51,6 +49,7 @@ class InformService:
 
     @staticmethod
     async def create_inform(db_session: AsyncSession, title: str, content: str, public: bool, author: OAUser, departments: list[OADepartment] = None):
+        
         inform = Inform(title=title, content=content, public=public, author=author)
         db_session.add(inform)
         await db_session.commit()

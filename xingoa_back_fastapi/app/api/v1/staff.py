@@ -10,6 +10,9 @@ from deps.deps import get_db_session, get_current_user
 from app.models.user import OAUser, UserStatusChoices
 from app.schemas.paginate import PaginatedResponse
 from app.schemas.staff import StaffResponse
+from app.exceptions import BizException
+from app.error import ErrorCode
+from app.response_model import BaseResponse
 
 router = APIRouter(
     prefix="/api/v1/staff",
@@ -28,28 +31,24 @@ async def add_staff(
     
     # 验证邮箱是否已存在
     if await UserService.get_user_by_email(db_session, staffReq.email):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="该邮箱已存在",
-        )
+        raise BizException(ErrorCode.EMAIL_OR_USERNAME_EXIST, 400)
 
     # 验证用户名是否已存在
     if await UserService.get_user_by_username(db_session, staffReq.realname):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="该用户名已存在",
-        )
+        raise BizException(ErrorCode.EMAIL_OR_USERNAME_EXIST, 400)
 
     # 验证当前用户是否是人事部的hr
     if current_user.department.name != "人事部":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="只有人事部的hr才能添加新员工",
-        )
+        raise BizException(ErrorCode.NOT_PERMITTED, 403)
 
     # 创建新员工, 会向新员工的邮箱发送激活邮件，此时员工状态为未激活；待新员工点击激活链接后，员工状态会改为已激活
     new_staff = await StaffService.create_staff(db_session, staffReq.realname, staffReq.email, staffReq.password, staffReq.department_id, staffReq.phone)
-    return JSONResponse(content={"message": "添加新员工邮件发送成功", "uid": new_staff.uid}, status_code=status.HTTP_201_CREATED)
+    # return JSONResponse(content={"message": "添加新员工邮件发送成功", "uid": new_staff.uid}, status_code=status.HTTP_201_CREATED)
+    return BaseResponse(
+        code=ErrorCode.SUCCESS,
+        message="添加新员工邮件发送成功",
+        data={"uid": new_staff.uid},
+    )
 
 
 # 用户点击激活链接，激活账户
@@ -61,59 +60,37 @@ async def activate_user(
     # 从请求参数重获取 邮箱加密生成的token
     token = request.query_params.get("token")
     if not token:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="激活链接参数错误",
-        )
+        raise BizException(ErrorCode.NOT_PERMITTED, 400)
     
-    # 解密token
-    try:
-        # print(f"token = {token}")
-        email = StaffService.decrypt_token(token=token)
-    except Exception as e:
-        # 解密失败（如token被篡改）
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="激活链接无效：token格式错误"
-        )
+    # 解密token--err属于server error
+    email = StaffService.decrypt_token(token=token)
     
     # 根据邮箱查询用户
     user = await UserService.get_user_by_email(db_session, email)
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="未找到该用户"
-        )
+        raise BizException(ErrorCode.EMAIL_OR_USERNAME_NOT_FOUND, 400)
 
     # 验证用户状态
     if user.status == UserStatusChoices.ACTIVED:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="该账号已激活，无需重复操作"
-        )
+        raise BizException(ErrorCode.REPEAT_OPERATION, 400)
     if user.status != UserStatusChoices.UNACTIVED:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="账号状态异常，无法激活"
-        )
+        raise BizException(ErrorCode.STATUS_EXCEPTION, 400)
 
     # todo 添加token有效期机制--基于redis
 
 
-    # 激活用户
-    try:
-        await StaffService.activate_staff(user, db_session)
-        return {"status": "success", "message": "账号激活成功！"} 
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="激活失败!"
-        )
+    # 激活用户-失败也是server error全局异常捕获
+    await StaffService.activate_staff(user, db_session)
+    return BaseResponse(
+        code=ErrorCode.SUCCESS,
+        message="账号激活成功！",
+    )
+
     
 
 # 员工列表， 支持分页 + 筛选
 # 必须是人事部的hr或者董事会才能获取员工列表
-@router.get("/list", response_model=PaginatedResponse[StaffResponse])
+@router.get("/list", response_model=BaseResponse[PaginatedResponse[StaffResponse]])
 async def get_staff_list(
     page: int = 1,
     page_size: int = 10,
@@ -122,14 +99,15 @@ async def get_staff_list(
     current_user: OAUser = Depends(get_current_user),
 ):
     if current_user.department.name not in ["人事部", "董事会"]:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="只有人事部的hr或者董事会才能获取员工列表",
-        )
+        raise BizException(ErrorCode.NOT_PERMITTED, 403)
     
     # 获取员工列表， 可以分页 + 筛选 + 排序
     staff_list = await StaffService.get_staff_list(db_session, page, page_size, department_id, "id", "desc")
-    return staff_list
+    return BaseResponse(
+        code=ErrorCode.SUCCESS,
+        message="获取员工列表成功",
+        data=staff_list,
+    )
 
 
 
