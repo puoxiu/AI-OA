@@ -12,6 +12,7 @@ from db.database import async_engine, Base
 from app.api.v1 import auth, absent, inform, staff, department
 from app.exceptions import BizException
 from app.error import ErrorCode
+from app.core.logging import app_logger
 
 # 生命周期管理器
 # 仅在开发环境推荐使用
@@ -23,9 +24,9 @@ async def lifespan(app: FastAPI):
         await conn.run_sync(Base.metadata.create_all)
         try:
             await conn.execute(text("SELECT 1"))
-            print("数据库连接成功")
+            app_logger.info("数据库连接成功")
         except Exception as e:
-            print(f"数据库连接失败: {e}")
+            app_logger.error(f"数据库连接失败: {e}")
             # 可选：在连接失败时阻止应用启动
             raise
     
@@ -34,7 +35,7 @@ async def lifespan(app: FastAPI):
     # 应用关闭时
     if isinstance(async_engine, AsyncEngine):
         await async_engine.dispose()
-        print("数据库连接池已关闭")
+        app_logger.info("数据库连接池已关闭")
 
 
 app = FastAPI(
@@ -55,6 +56,7 @@ app.add_middleware(
 # 自定义异常处理器
 @app.exception_handler(BizException)
 async def biz_exception_handler(request: Request, exc: BizException):
+    app_logger.warning(f"业务异常: {exc.detail['msg']}")
     return JSONResponse(
         status_code=exc.status_code,
         content={
@@ -64,7 +66,7 @@ async def biz_exception_handler(request: Request, exc: BizException):
     )
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    # logging.error("Unhandled Exception", exc_info=exc)
+    app_logger.error(f"未处理异常, 系统错误: {exc}")
     return JSONResponse(
         status_code=500,
         content={
@@ -75,6 +77,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 # 处理请求验证失败（如参数格式错误）
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    app_logger.warning(f"请求参数校验失败: {exc}")
     return JSONResponse(
         status_code=422,
         content={
@@ -97,12 +100,15 @@ async def test_email():
     from utils.mailer import send_email
     try:
         send_email("测试邮件", ["zmx_12345@163.com"], "这是一封测试邮件")
+        app_logger.debug("测试邮件发送成功")
         return {"message": "测试邮件发送成功"}
     except Exception as e:
+        app_logger.error(f"测试邮件发送失败: {e}")
         return {"message": f"测试邮件发送失败: {e}"}
 
 
 
 if __name__ == "__main__":
     import uvicorn
+    app_logger.info("应用启动")
     uvicorn.run(app, host="0.0.0.0", port=8003)

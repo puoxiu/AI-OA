@@ -12,6 +12,7 @@ from app.core.auth import AuthTokenHelper
 from app.response_model import BaseResponse
 from app.error import ErrorCode
 from app.exceptions import BizException
+from app.core.logging import app_logger
 
 router = APIRouter(
     prefix="/api/v1/user",
@@ -57,7 +58,9 @@ async def login(login_request: LoginRequest, db_session: AsyncSession = Depends(
         "last_login": user.last_login.strftime("%Y-%m-%d %H:%M:%S") if user.last_login else None
     }
     token = AuthTokenHelper.token_encode(payload)
-
+    
+    app_logger.info(f"用户登录成功，用户：{user.uid}")
+    
     return BaseResponse(
         code=ErrorCode.SUCCESS,
         msg="登录成功",
@@ -80,7 +83,9 @@ async def resetpwd(resetpwd_request: ResetPwdRequest, db_session: AsyncSession =
     db_session.add(user)
     await db_session.commit()
     await db_session.refresh(user)
-
+    
+    app_logger.info(f"用户密码重置成功，用户：{user.uid}")
+    
     # 删除 Redis 中的验证码
     return BaseResponse(
         code=ErrorCode.SUCCESS,

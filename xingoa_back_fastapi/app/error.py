@@ -19,7 +19,7 @@ class ErrorCode:
     ABSENT_ALREADY_PROCESSED = 11003
     NOT_PERMITTED = 11004
 
-    EMAIL_OR_USERNAME_NOT_FOUND = 12001
+    USER_OR_EMAIL_EXIST = 12001
     REPEAT_OPERATION = 12002
     STATUS_EXCEPTION = 12003
 
@@ -37,7 +37,7 @@ ERROR_MESSAGES = {
     ErrorCode.ABSENT_NOT_PERMITTED: "您没有权限处理该请假请求",
     ErrorCode.ABSENT_ALREADY_PROCESSED: "该请假请求已处理",
     ErrorCode.NOT_PERMITTED: "您没有权限执行该操作",
-    ErrorCode.EMAIL_OR_USERNAME_NOT_FOUND: "邮箱或用户名不存在",
+    ErrorCode.USER_OR_EMAIL_EXIST: "用户名或邮箱已存在",
     ErrorCode.REPEAT_OPERATION: "重复操作",
     ErrorCode.STATUS_EXCEPTION: "状态异常",
     

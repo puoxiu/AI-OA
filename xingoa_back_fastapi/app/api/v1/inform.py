@@ -11,6 +11,7 @@ from app.models.user import OAUser
 
 from app.response_model import BaseResponse
 from app.error import ErrorCode
+from app.core.logging import app_logger
 
 router = APIRouter(
     prefix="/api/v1/inform",
@@ -21,6 +22,9 @@ router = APIRouter(
 @router.get("/all", response_model=BaseResponse[List[InformsResponse]])
 async def get_informs(db_session: AsyncSession = Depends(get_db_session), current_user: OAUser = Depends(get_current_user)):
     informs = await InformService.get_informs(db_session, current_user)
+    
+    app_logger.info(f"获取通知信息成功，用户：{current_user.uid}")
+    
     return BaseResponse(
         code=ErrorCode.SUCCESS,
         msg="获取通知信息成功",
@@ -35,9 +39,10 @@ async def create_inform(
     db_session: AsyncSession = Depends(get_db_session),
     current_user: OAUser = Depends(get_current_user)
 ):
-    print("=" * 300)
     inform = await InformService.create_inform(db_session, inform.title, inform.content, inform.public, current_user)
-
+    
+    app_logger.info(f"创建通知成功，通知ID：{inform.id}，用户：{current_user.uid}")
+    
     return BaseResponse(
         code=ErrorCode.SUCCESS,
         msg="创建通知成功",
@@ -52,6 +57,9 @@ async def mark_inform_as_read(
     current_user: OAUser = Depends(get_current_user)
 ):
     result = await InformService.mark_inform_as_read(db_session, inform_id, current_user)
+    
+    app_logger.info(f"标记通知为已读成功，通知ID：{inform_id}，用户：{current_user.uid}")
+    
     return BaseResponse(
         code=ErrorCode.SUCCESS,
         msg="标记通知为已读成功",

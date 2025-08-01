@@ -1,6 +1,13 @@
 from pydantic_settings import BaseSettings
 from functools import lru_cache
+from enum import Enum
 
+class LogLevel(str, Enum):
+    DEBUG = "DEBUG"
+    INFO = "INFO"
+    WARNING = "WARNING"
+    ERROR = "ERROR"
+    CRITICAL = "CRITICAL"
 
 class Settings(BaseSettings):
     APP_NAME: str = "xingoa_基于AI的OA系统"
@@ -26,6 +33,15 @@ class Settings(BaseSettings):
     # celery 配置
     CELERY_BROKER_URL: str
     CELERY_RESULT_BACKEND: str
+
+    # 日志配置
+    LOG_LEVEL: LogLevel = LogLevel.INFO
+    LOG_DIR: str = "logs"
+    LOG_FILE: str = "app.log"
+    LOG_MAX_BYTES: int = 10 * 1024 * 1024  # 10MB
+    LOG_BACKUP_COUNT: int = 5
+    LOG_CONSOLE_OUTPUT: bool = False
+
 
     class Config:
         env_file = ".env"

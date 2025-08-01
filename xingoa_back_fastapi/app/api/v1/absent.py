@@ -13,7 +13,7 @@ from app.utils.absent import get_responder
 from app.response_model import BaseResponse
 from app.error import ErrorCode
 from app.exceptions import BizException
-
+from app.core.logging import app_logger
 
 router = APIRouter(
     prefix="/api/v1/absent",
@@ -31,7 +31,9 @@ async def get_absent_type(
     获取请假类型
     """
     absent_types = await AbsentTypeService.get_all_absent_type(db_session)
-
+    
+    app_logger.info(f"获取请假类型成功，用户：{current_user.uid}")
+    
     return BaseResponse(
         code=ErrorCode.SUCCESS,
         msg="获取请假类型成功",
@@ -51,6 +53,9 @@ async def create_new_absent(
     responder = get_responder(current_user)
 
     new_absent = await AbsentService.create_absent(db_session, absent, current_user.uid, responder.uid)
+    
+    app_logger.info(f"请假成功，请假ID：{new_absent.id}，用户：{current_user.uid}")
+    
     return BaseResponse(
         code=ErrorCode.SUCCESS,
         msg="请假成功",
@@ -80,6 +85,8 @@ async def get_all_absents(
         requester_uid=current_user.uid
     )
     
+    app_logger.info(f"获取请假记录成功，用户：{current_user.uid}")
+    
     # 直接返回 ORM 实例列表，FastAPI 会自动通过 response_model 验证并转换
     return BaseResponse(
         code=ErrorCode.SUCCESS,
@@ -98,6 +105,9 @@ async def get_all_absents(
         db_session=db_session,
         responder_uid=current_user.uid
     )
+    
+    app_logger.info(f"获取下属请假记录成功，用户：{current_user.uid}")
+    
     # 直接返回 ORM 实例列表，FastAPI 会自动通过 response_model 验证并转换
     return BaseResponse(
         code=ErrorCode.SUCCESS,
@@ -116,6 +126,8 @@ async def get_all_absents(
         db_session=db_session,
         responder_uid=current_user.uid
     )
+    
+    app_logger.info(f"获取未处理下属请假记录成功，用户：{current_user.uid}")
     
     # 直接返回 ORM 实例列表，FastAPI 会自动通过 response_model 验证并转换
     return BaseResponse(
@@ -147,7 +159,9 @@ async def process_new_absents(
     
     # 更新请假请求状态
     await AbsentService.update_absent_status(db_session, absent_id, status)
-
+    
+    app_logger.info(f"处理请假请求成功，请假ID：{absent_id}，用户：{current_user.uid}")
+    
     return BaseResponse(
         code=ErrorCode.SUCCESS,
         msg="处理请假请求成功",

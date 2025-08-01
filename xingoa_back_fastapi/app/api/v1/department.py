@@ -7,6 +7,7 @@ from app.services.department import DepartmentService
 from deps.deps import get_db_session
 from app.response_model import BaseResponse
 from app.error import ErrorCode
+from app.core.logging import app_logger
 
 router = APIRouter(
     prefix="/api/v1/department",
@@ -18,6 +19,9 @@ router = APIRouter(
 @router.get("/all", response_model=BaseResponse[List[DepartmentResponse]])
 async def get_all_departments(db_session: AsyncSession = Depends(get_db_session)):
     departments = await DepartmentService.get_all_departments(db_session)
+    
+    app_logger.info(f"获取部门信息成功，部门数量：{len(departments)}")
+    
     return BaseResponse(
         code=ErrorCode.SUCCESS,
         msg="获取部门信息成功",
