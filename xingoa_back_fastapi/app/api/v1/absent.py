@@ -151,7 +151,7 @@ async def process_new_absents(
     
     # 检查请假请求是否由当前用户处理
     if absent.responder_uid != current_user.uid:
-        raise BizException(ErrorCode.ABSENT_NOT_PERMITTED, 403)
+        raise BizException(ErrorCode.NOT_PERMITTED, 403)
     
     # 检查请假请求状态是否为0
     if absent.status != 0:

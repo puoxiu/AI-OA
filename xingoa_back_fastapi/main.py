@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from db.database import async_engine, Base
-from app.api.v1 import auth, absent, inform, staff, department
+from app.api.v1 import auth, absent, inform, staff, department, meeting_room
 from app.exceptions import BizException
 from app.error import ErrorCode
 from app.core.logging import app_logger
@@ -93,6 +93,7 @@ app.include_router(absent.router)
 app.include_router(inform.router)
 app.include_router(staff.router)
 app.include_router(department.router)
+app.include_router(meeting_room.router)
 
 # 测试邮箱发送路由
 @app.get("/test-email")

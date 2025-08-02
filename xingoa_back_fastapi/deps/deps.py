@@ -8,6 +8,8 @@ from db.database import async_session
 from app.core.auth import AuthTokenHelper
 from app.models.user import OAUser
 from app.services.auth import UserService
+from app.exceptions import BizException
+from app.error import ErrorCode
 
 async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
     db_session = None
@@ -24,9 +26,11 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/user/login")
 async def get_current_payload(token: str = Depends(oauth2_scheme)) -> dict:
     try:
         payload = AuthTokenHelper.token_decode(token)
+        print(f"成功获取payload: {payload}")
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
-    
+    if payload is None:
+        raise BizException(ErrorCode.TOKEN_ERROR, 400)
     return payload
 
 
@@ -36,5 +40,5 @@ async def get_current_user(
 ) -> OAUser:
     user = await UserService.get_user_by_email(db_session, email=payload["email"])
     if not user:
-        raise HTTPException(status_code=404, detail="用户不存在")
+        raise BizException(ErrorCode.TOKEN_ERROR, 400)
     return user
