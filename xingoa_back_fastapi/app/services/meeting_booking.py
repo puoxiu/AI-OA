@@ -160,3 +160,25 @@ class MeetingBookingService:
         await db.commit()
         await db.refresh(booking)
         return booking
+
+    @staticmethod
+    async def get_available_rooms(
+        db: AsyncSession,
+        start_time: datetime,
+        end_time: datetime
+    ) -> List[MeetingRoom]:
+        """查询指定时间段内所有空闲的会议室"""
+        query = select(MeetingRoom).where(
+            MeetingRoom.is_active == True,
+            ~MeetingRoom.bookings.any(
+                and_(
+                    MeetingBooking.start_time < end_time,
+                    MeetingBooking.end_time > start_time
+                )
+            )
+        ).options(
+            selectinload(MeetingRoom.bookings)
+        )
+        result = await db.execute(query)
+        return result.scalars().all()
+    

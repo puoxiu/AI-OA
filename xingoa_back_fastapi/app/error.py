@@ -21,6 +21,7 @@ class ErrorCode:
     BOOKING_FAILED = 11006
     ROOM_NOT_ACTIVE = 11007
     BOOKING_TIME_CONFLICT = 11008
+    INVALID_PARAM = 11009
 
     USER_OR_EMAIL_EXIST = 12001
     REPEAT_OPERATION = 12002
@@ -41,7 +42,8 @@ ERROR_MESSAGES = {
     ErrorCode.BOOKING_FAILED: "预订失败, 请检查会议室是否可用或者时间冲突",
     ErrorCode.ROOM_NOT_ACTIVE: "会议室已停用",
     ErrorCode.BOOKING_TIME_CONFLICT: "预订时间冲突",
-
+    
+    ErrorCode.INVALID_PARAM: "参数错误",
     ErrorCode.NOT_PERMITTED: "您没有权限执行该操作",
     ErrorCode.USER_OR_EMAIL_EXIST: "用户名或邮箱已存在",
     ErrorCode.REPEAT_OPERATION: "重复操作",
