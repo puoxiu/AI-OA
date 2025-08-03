@@ -25,7 +25,7 @@ class MeetingRoom(Base):
     is_active = Column(Boolean, default=True, comment="是否可用")
     create_time = Column(DateTime, server_default=func.now(), comment="创建时间")
     # 关联预订记录
-    bookings = relationship("MeetingBooking", back_populates="room")
+    bookings = relationship("MeetingBooking", back_populates="room", lazy="selectin")
 
 
 class MeetingBooking(Base):
@@ -43,9 +43,9 @@ class MeetingBooking(Base):
     start_time = Column(DateTime, nullable=False, comment="开始时间")
     end_time = Column(DateTime, nullable=False, comment="结束时间")
 
-    is_approved = Column(Boolean, default=True, comment="是否已审核")
+    is_approved = Column(Boolean, default=True, comment="是否已审批, 默认直接通过")
     create_time = Column(DateTime, server_default=func.now(), comment="创建时间")
 
     # 关系映射
-    room = relationship("MeetingRoom", back_populates="bookings")
-    booker = relationship("OAUser", backref="booked_meetings")
+    room = relationship("MeetingRoom", back_populates="bookings", lazy="selectin")
+    booker = relationship("OAUser", backref="booked_meetings", lazy="selectin")
