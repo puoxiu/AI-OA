@@ -7,3 +7,4 @@ npm run dev
 
 npm install vite-plugin-vue-setup-extend --save-dev
 npm install axios --save
+npm install element-plus --save

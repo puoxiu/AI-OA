@@ -4,6 +4,7 @@ import { reactive } from "vue"
 import { useAuthStore } from "@/stores/auth"
 import { useRouter } from "vue-router"
 import authHttp from "@/api/authHttp"
+import { ElMessage } from 'element-plus'
 
 
 
@@ -21,11 +22,14 @@ const onSubmit = async () => {
     // 正则表达式
     const reg = /^[a-zA-Z0-9_.-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.[a-zA-Z0-9]{2,6}$/
     if (!reg.test(form.email)) {
-        alert("请输入正确的邮箱")
+        // alert("请输入正确的邮箱")
+        ElMessage.error("请输入正确的邮箱格式")
+
         return
     }
     if (form.password.length < 6) {
-        alert("密码不能少于6位")
+        ElMessage.error("密码不能少于6位")
+
         return
     }
     // axios
@@ -63,7 +67,9 @@ const onSubmit = async () => {
         router.push({ name: "frame" })
     }catch(err) {
         console.log(err)
-        alert(err)
+        // alert(err)
+        ElMessage.error(err.msg)
+        console.log(err.code)
     }
 
 }

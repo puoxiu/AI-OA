@@ -21,8 +21,8 @@ class Http{
                 let result = await this.instance.post(path, data)
                 resolve(result)
             }catch(err) {
-                let msg = err.response.data.msg
-                reject(msg)
+                let msg_data = err.response.data
+                reject(msg_data)
             }
         })
     }
