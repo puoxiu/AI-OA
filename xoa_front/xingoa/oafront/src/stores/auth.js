@@ -16,10 +16,19 @@ export const useAuthStore = defineStore('auth', () => {
 
   let token = computed(() => {
     if(!_token.value) {
-      _token.value = localStorage.getItem(TOKEN_KEY)
+      let token = localStorage.getItem(TOKEN_KEY)
+      if(token) {
+        _token.value = token
+      }
     }
     return _token.value
   })
+
+  // 判断是否登录
+  let isLogin = computed(() => {
+    return token.value !== ''
+  })
+
   // 暴露方法
-  return { setToken, token }
+  return { setToken, token, isLogin }
 })

@@ -61,7 +61,8 @@ const onSubmit = async () => {
     // 3 优雅异步版本
     try{
         let result = await authHttp.login(form.email, form.password)
-        let token = result.data.token
+        let token = result.data.data.token
+
         authStore.setToken(token)
         // 跳转
         router.push({ name: "frame" })
