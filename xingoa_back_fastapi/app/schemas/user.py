@@ -13,7 +13,6 @@ class LoginResponse(BaseModel):
 
 
 class ResetPwdRequest(BaseModel):
-    email: str
     verify_code: str
     new_pwd1: str
     new_pwd2: str
@@ -21,9 +20,9 @@ class ResetPwdRequest(BaseModel):
     @field_validator('verify_code')
     @classmethod
     def validate_verify_code(cls, v, info):
-        email = info.data.get('email')
-        if not email:
-            raise ValueError("未提供邮箱信息")
+        # email = info.data.get('email')
+        # if not email:
+        #     raise ValueError("未提供邮箱信息")
         
         # 从 Redis 中获取存储的验证码
         # stored_code = redis_client.get(email)

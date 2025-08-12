@@ -1,10 +1,14 @@
 <script setup name="Frame">
-import { ref, computed } from 'vue'
+import { ref, computed, reactive } from 'vue'
 import { Expand, Fold } from '@element-plus/icons-vue'
-import {useAuthStore} from '@/stores/auth'
+import { useAuthStore } from '@/stores/auth'
+import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import authHttp from '@/api/authHttp'
 
 const auth = useAuthStore()
-console.log("嘿嘿", auth.token)
+const router = useRouter()
+// console.log("嘿嘿", auth.user )
 
 let isCollapse = ref(false)
 
@@ -16,9 +20,68 @@ let asideWidth = computed(() => {
   }
 })
 
+// 退出登录
+const logOut = () => {
+  auth.logout()
+  router.push({ name: "login" })
+  ElMessage.success("退出登录成功")
+}
+
+// 修改密码
+let dialogVisible = ref(false)
+let resetPwdForm = reactive({
+  verifyCode: '',
+  pwd1: '',
+  pwd2: '',
+})
+let resetPwdFormLabelWidth = "80px"
+const onControlResetPwdDialog = () => {
+  resetPwdForm.verifyCode = ''
+  resetPwdForm.pwd1 = ''
+  resetPwdForm.pwd2 = ''
+  dialogVisible.value = true
+}
+
+let resetPwdFormRef = ref()
+const onSubmit =  () => {
+  resetPwdFormRef.value.validate(async (valid) => {
+    if (valid) {
+      // 校验通过，执行提交操作
+      console.log('校验通过，提交表单数据');
+      try {
+        await authHttp.resetPwd(resetPwdForm.verifyCode, resetPwdForm.pwd1, resetPwdForm.pwd2)
+        ElMessage.success("修改密码成功")
+        dialogVisible.value = false
+      } catch (err) {
+        console.log(err)
+        ElMessage.error(err.msg)
+      }
+    } else {
+      // 校验不通过，提示用户输入正确信息
+      console.log('校验不通过，提示用户输入正确信息');
+    }
+  });
+}
+
+// 用户输入校验（不合格在前端提示)
+const rules = reactive({
+  verifyCode: [
+    { required: true, message: '请输入验证码', trigger: 'blur' },
+    { min: 6, message: '验证码长度至少6位', trigger: 'blur' },
+  ],
+  pwd1: [
+    { required: true, message: '请输入新密码', trigger: 'blur' },
+    { min: 6, message: '密码长度至少6位', trigger: 'blur' },
+  ],
+  pwd2: [
+    { required: true, message: '请输入确认密码', trigger: 'blur' },
+    { min: 6, message: '密码长度至少6位', trigger: 'blur' },
+  ],
+})
 </script>
 
 <template>
+  <!-- 主容器 -->
   <el-container class="container">
     <!-- 侧边栏 -->
     <el-aside class="sidebar" :width="asideWidth">
@@ -120,7 +183,7 @@ let asideWidth = computed(() => {
           <el-dropdown>
             <span class="el-dropdown-link">
               <el-avatar :size="20" icon="UserFilled" />
-              <span style="margin-left: 5px;">用户</span>
+              <span style="margin-left: 5px;">[{{ auth.user.email }} {{ auth.user.username }}]</span>
               <el-icon class="el-icon--right">
                 <arrow-down />
               </el-icon>
@@ -128,8 +191,8 @@ let asideWidth = computed(() => {
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item>个人信息</el-dropdown-item>
-                <el-dropdown-item>设置</el-dropdown-item>
-                <el-dropdown-item>退出登录</el-dropdown-item>
+                <el-dropdown-item @click="onControlResetPwdDialog">修改密码</el-dropdown-item>
+                <el-dropdown-item @click="logOut">退出登录</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -139,6 +202,30 @@ let asideWidth = computed(() => {
       <el-main class="main">Main</el-main>
     </el-container>
   </el-container>
+
+  <!-- 弹窗 -->
+  <el-dialog v-model="dialogVisible" title="修改密码" width="400px">
+    <el-form :model="resetPwdForm" :rules="rules" ref="resetPwdFormRef">
+      <el-form-item label="验证码" :label-width="formLabelWidth" prop="verifyCode">
+        <el-input v-model="resetPwdForm.verifyCode" autocomplete="off" />
+      </el-form-item>
+      <el-form-item label="新密码" :label-width="resetPwdFormLabelWidth" prop="pwd1">
+        <el-input v-model="resetPwdForm.pwd1" autocomplete="off" type="password" />
+      </el-form-item>
+      <el-form-item label="确认密码" :label-width="resetPwdFormLabelWidth" prop="pwd2">
+        <el-input v-model="resetPwdForm.pwd2" autocomplete="off" type="password" />
+      </el-form-item>
+
+    </el-form>
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="onSubmit">
+          确定
+        </el-button>
+      </div>
+    </template>
+  </el-dialog>
 </template>
 
 <style scoped>

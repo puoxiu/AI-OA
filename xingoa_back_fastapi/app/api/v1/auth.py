@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 
 from app.schemas.user import LoginRequest, LoginResponse, ResetPwdRequest
 from app.models.user import OAUser, UserStatusChoices
-from deps.deps import get_db_session
+from deps.deps import get_db_session, get_current_user
 from app.services.auth import UserService
 from utils.hash import verify_password, get_password_hash
 from app.core.auth import AuthTokenHelper
@@ -72,8 +72,8 @@ async def login(login_request: LoginRequest, db_session: AsyncSession = Depends(
     
 
 @router.post("/resetpwd", response_model=BaseResponse)
-async def resetpwd(resetpwd_request: ResetPwdRequest, db_session: AsyncSession = Depends(get_db_session)):
-    user = await UserService.get_user_by_email(db_session, resetpwd_request.email)
+async def resetpwd(resetpwd_request: ResetPwdRequest, db_session: AsyncSession = Depends(get_db_session), current_user: OAUser = Depends(get_current_user)):
+    user = await UserService.get_user_by_email(db_session, current_user.email)
     if not user:
         raise BizException(ErrorCode.LOGIN_ERROR, 400)
 

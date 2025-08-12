@@ -84,6 +84,8 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
             "msg": "请求参数校验失败，请检查请求内容和格式！"
         }
     )
+# 未登录 未传入token -》 401 未授权异常
+
 
 # 静态文件
 app.mount("/static", StaticFiles(directory="static"), name="static")

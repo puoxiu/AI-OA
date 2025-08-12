@@ -29,7 +29,6 @@ const onSubmit = async () => {
     }
     if (form.password.length < 6) {
         ElMessage.error("密码不能少于6位")
-
         return
     }
     // axios
@@ -61,9 +60,11 @@ const onSubmit = async () => {
     // 3 优雅异步版本
     try{
         let result = await authHttp.login(form.email, form.password)
-        let token = result.data.data.token
+        let user = result.data.data.user
 
-        authStore.setToken(token)
+        let token = result.data.data.token
+        authStore.setUserToken(user, token)
+
         // 跳转
         router.push({ name: "frame" })
     }catch(err) {
