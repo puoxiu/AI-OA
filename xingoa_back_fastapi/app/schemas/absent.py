@@ -1,5 +1,5 @@
 # AI-OA/xingoa_back_fastapi/app/schemas/absent.py
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import date, datetime
 
@@ -26,13 +26,19 @@ class AbsentCreateResponse(BaseModel):
     start_date: date
     end_date: date
     create_time: datetime
-    response_content: Optional[str]  # 可能为 None（未审批时）
-    requester_uid: str
-    responder_uid: Optional[str]
+    response_content: Optional[str] = None  # 可能为 None（未审批时）
+    requester_name: str
+    requester_id: str
+    responder_id: Optional[str]
+    responder_name: Optional[str]
     absent_type_id: int
+    absent_type_name: str
 
     class Config:
         from_attributes = True
+
+
+
 
 class AbsentCreateRequest(BaseModel):
     title: str
@@ -49,8 +55,10 @@ class AbsentCreateRequest(BaseModel):
         return values
 
 
+class AbsentResponder(BaseModel):
+    email: str
+    username: str
 
-
-class AbsentUpdate(BaseModel):
-    status: int
-    response_content: Optional[str]
+class ProcessAbsentRequest(BaseModel):
+    status: int = Field(..., description="处理状态（例如：1-未处理，2-通过，3-拒绝）")
+    response_content: str = Field(..., min_length=1, max_length=500, description="处理意见")

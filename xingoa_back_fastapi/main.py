@@ -21,7 +21,7 @@ async def lifespan(app: FastAPI):
     # 应用启动时
     async with async_engine.begin() as conn:
         # 遍历所有继承自 Base 的 ORM 模型类，根据模型定义在数据库中创建对应的表结构
-        await conn.run_sync(Base.metadata.create_all)
+        # await conn.run_sync(Base.metadata.create_all)
         try:
             await conn.execute(text("SELECT 1"))
             app_logger.info("数据库连接成功")

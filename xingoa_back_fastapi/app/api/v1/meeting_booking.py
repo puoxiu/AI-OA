@@ -30,19 +30,21 @@ async def create_booking(
     """创建会议室预订"""
     try:
         booking = await MeetingBookingService.create_booking(
-            db, booking, current_user.uid
+            db, booking, current_user
         )
-        app_logger.info(f"用户 {current_user.uid} 创建会议室预订：{booking.id}")
+        app_logger.info(f"用户 {current_user.id} 创建会议室预订：{booking.id}")
         return BaseResponse(
             code=ErrorCode.SUCCESS,
             msg="预订成功",
             data=booking
         )
     except BizException as e:
+        app_logger.warning(f"用户 {current_user.id} 预订会议室失败：{e}，参数：{booking.model_dump()}")
         raise e
     except Exception as e:
         app_logger.error(f"创建预订失败：{str(e)}")
-        raise BizException(ErrorCode.SERVER_ERROR, 500)
+        raise BizException(ErrorCode.SERVER_ERROR, 500, "系统异常")
+
 
 @router.get("/detail/{booking_id}", response_model=BaseResponse[MeetingBookingResponse])
 async def get_booking_detail(
@@ -50,39 +52,23 @@ async def get_booking_detail(
     db: AsyncSession = Depends(get_db_session),
     current_user: OAUser = Depends(get_current_user)
 ):
-    """获取预订详情"""
+    """根据预订ID获取预订详情"""
     booking = await MeetingBookingService.get_booking(db, booking_id)
     if not booking:
         raise BizException(ErrorCode.NOT_FOUND, 404)
     
     # 权限检查：只能查看自己的预订或管理员查看所有
-    if booking.booker_id != current_user.uid and current_user.department.name not in ["人事部", "董事会"]:
+    if booking.booker_id != current_user.id and current_user.department.name not in ["人事部", "董事会"]:
         raise BizException(ErrorCode.NOT_PERMITTED, 403)
     
-    app_logger.info(f"用户 {current_user.uid} 查看预订详情：{booking_id}")
+    app_logger.info(f"用户 {current_user.id} 查看预订详情：{booking_id}")
     return BaseResponse(
         code=ErrorCode.SUCCESS,
         msg="获取成功",
         data=booking
     )
 
-# @router.get("/my/{id}", response_model=BaseResponse[List[MeetingBookingResponse]])
-# async def get_my_bookings(
-#     id: int,
-#     db: AsyncSession = Depends(get_db_session),
-#     current_user: OAUser = Depends(get_current_user)
-# ):
-#     """获取当前用户的预订记录"""
-#     bookings = await MeetingBookingService.get_user_bookings(
-#         db, current_user.uid
-#     )
-#     app_logger.info(f"用户 {current_user.uid} 获取个人预订列表")
-#     print(bookings)
-#     return BaseResponse(
-#         code=ErrorCode.SUCCESS,
-#         msg=f"获取成功{id}",
-#         data=bookings
-#     )
+
 @router.get("/my", response_model=BaseResponse[List[MeetingBookingResponse]])
 async def get_my_bookings(
     db: AsyncSession = Depends(get_db_session),
@@ -90,9 +76,9 @@ async def get_my_bookings(
 ):
     """获取当前用户的预订记录"""
     bookings = await MeetingBookingService.get_user_bookings(
-        db, current_user.uid
+        db, current_user.id
     )
-    app_logger.info(f"用户 {current_user.uid} 获取个人预订列表")
+    app_logger.info(f"用户 {current_user.id} 获取个人预订列表")
     print(bookings)
     return BaseResponse(
         code=ErrorCode.SUCCESS,
@@ -114,12 +100,13 @@ async def get_room_bookings(
     bookings = await MeetingBookingService.get_room_bookings(
         db, room_id, start_time, end_time
     )
-    app_logger.info(f"用户 {current_user.uid} 获取会议室 {room_id} 的预订列表")
+    app_logger.info(f"用户 {current_user.id} 获取会议室 {room_id} 的预订列表")
     return BaseResponse(
         code=ErrorCode.SUCCESS,
         msg="获取成功",
         data=bookings
     )
+
 
 @router.delete("/cancel/{booking_id}", response_model=BaseResponse)
 async def cancel_booking(
@@ -128,23 +115,17 @@ async def cancel_booking(
     current_user: OAUser = Depends(get_current_user)
 ):
     """取消预订（仅预订人或管理员）"""
-    try:
-        success = await MeetingBookingService.cancel_booking(
-            db, booking_id, current_user.uid
-        )
-        if not success:
-            raise BizException(ErrorCode.NOT_FOUND, 404)
-        
-        app_logger.info(f"用户 {current_user.uid} 取消预订：{booking_id}")
-        return BaseResponse(
-            code=ErrorCode.SUCCESS,
-            msg="取消成功"
-        )
-    except BizException as e:
-        raise e
-    except Exception as e:
-        app_logger.error(f"取消预订失败：{str(e)}")
-        raise BizException(ErrorCode.SERVER_ERROR, 500)
+    success = await MeetingBookingService.cancel_booking(
+        db, booking_id, current_user
+    )
+    if not success:
+        raise BizException(ErrorCode.NOT_FOUND, 404, "预订记录不存在")
+    
+    app_logger.info(f"用户 {current_user.id} 取消预订：{booking_id}")
+    return BaseResponse(
+        code=ErrorCode.SUCCESS,
+        msg="取消成功"
+    )
 
 # 不需要审批 自动通过
 
@@ -157,17 +138,14 @@ async def get_available_rooms(
     current_user: OAUser = Depends(get_current_user)
 ):
     """查询指定时间段内所有空闲的会议室"""
-    if start_time >= end_time:
-        raise BizException(ErrorCode.INVALID_PARAM, 400)
-    
-    available_rooms = await MeetingBookingService.get_available_rooms(
+    rooms = await MeetingBookingService.get_available_rooms(
         db, start_time, end_time
     )
-    app_logger.info(f"用户 {current_user.uid} 查询 {start_time}-{end_time} 空闲会议室")
+    app_logger.info(f"用户 {current_user.id} 查询指定时间段内所有空闲的会议室")
     return BaseResponse(
         code=ErrorCode.SUCCESS,
-        msg="查询成功",
-        data=available_rooms
+        msg="获取成功",
+        data=rooms
     )
 
 

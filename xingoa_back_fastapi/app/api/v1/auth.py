@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime, timezone
 
@@ -46,20 +46,26 @@ async def login(login_request: LoginRequest, db_session: AsyncSession = Depends(
         'scopes': ["user"],  # 可选
     }
 
-    # 暂时不返回用户信息
     user_dict = {
-        "uid": user.uid,
+        "id": user.id,
         "username": user.username,
         "email": user.email,
         "phone": user.phone,
         "is_staff": user.is_staff,
         "status": user.status,
         "date_joined": user.date_joined.strftime("%Y-%m-%d %H:%M:%S") if user.date_joined else None,
-        "last_login": user.last_login.strftime("%Y-%m-%d %H:%M:%S") if user.last_login else None
+        "last_login": user.last_login.strftime("%Y-%m-%d %H:%M:%S") if user.last_login else None,
+        "department_roles": [
+            {
+                "department_name": role.department.name,
+                "role": role.role,
+            }
+            for role in user.department_roles
+        ]
     }
     token = AuthTokenHelper.token_encode(payload)
     
-    app_logger.info(f"用户登录成功，用户：{user.uid}")
+    app_logger.info(f"用户登录成功，用户：{user.id}")
     
     return BaseResponse(
         code=ErrorCode.SUCCESS,
@@ -84,7 +90,7 @@ async def resetpwd(resetpwd_request: ResetPwdRequest, db_session: AsyncSession =
     await db_session.commit()
     await db_session.refresh(user)
     
-    app_logger.info(f"用户密码重置成功，用户：{user.uid}")
+    app_logger.info(f"用户密码重置成功，用户：{user.id}")
     
     # 删除 Redis 中的验证码
     return BaseResponse(

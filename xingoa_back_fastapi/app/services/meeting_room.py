@@ -17,7 +17,7 @@ class MeetingRoomService:
     @staticmethod
     async def create_room(db: AsyncSession, room_data: MeetingRoomCreate):
         """创建会议室"""
-        db_room = MeetingRoom(**room_data.dict())
+        db_room = MeetingRoom(**room_data.model_dump())
         db.add(db_room)
         await db.commit()
         await db.refresh(db_room)
@@ -51,7 +51,7 @@ class MeetingRoomService:
         return room
     
     @staticmethod
-    async def delete_room(db: AsyncSession, room_id: str) -> bool:
+    async def delete_room(db: AsyncSession, room_id: int) -> bool:
         """删除会议室（软删除，标记为不可用）"""
         room = await db.get(MeetingRoom, room_id)
         if not room:

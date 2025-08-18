@@ -1,6 +1,9 @@
 from app.models.user import OAUser
 
 def get_responder(user: OAUser) -> OAUser | None:
+    print("当前用户信息:", user.username)
+    print("当前用户部门:", user.leader_department)
+    print( user.leader_department.leader)
     print(f"用户是否为部门leader: {user.leader_department and user.leader_department.leader == user}")
     print(f"用户所在部门名称: {user.department.name if user.department else '无部门'}")
     # 获取审批者

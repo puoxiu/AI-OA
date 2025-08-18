@@ -7,7 +7,6 @@ from app.schemas.user import OAUserResponse
 # class DepartmentResponse(BaseModel):
 #     id: int
 #     name: str
-#     intro: str
 #     leader: OAUserResponse | None
 #     manager: OAUserResponse | None
 
@@ -19,7 +18,8 @@ class DepartmentResponse(BaseModel):
     """部门响应模型（排除反向关联的 staffs，避免循环）"""
     id: int
     name: str
-    intro: Optional[str]
+    leader: dict | None
+    manager: dict | None
 
     class Config:
         from_attributes = True  # 允许从 ORM 对象映射
