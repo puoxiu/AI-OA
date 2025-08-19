@@ -2,6 +2,8 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 import Login from '../views/login/login.vue'
 import Frame from '../views/main/frame.vue'
 import { useAuthStore } from '@/stores/auth'
+import MyAbsent from '../views/absent/my.vue'
+import SubAbsent from '../views/absent/sub.vue'
 
 const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
@@ -9,7 +11,19 @@ const router = createRouter({
     {
       path: '/',
       name: 'frame',
-      component: Frame
+      component: Frame,
+      children: [
+        {
+          path: '/absent/my',
+          name: 'myabsent',
+          component: MyAbsent
+        },
+        {
+          path: '/absent/sub',
+          name: 'subabsent',
+          component: SubAbsent
+        }
+      ]
     },
     {
       path: '/login',

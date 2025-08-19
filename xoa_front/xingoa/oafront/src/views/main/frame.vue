@@ -93,7 +93,7 @@ const rules = reactive({
       </router-link>
       <el-menu default-active="1" class="el-menu-vertical-demo" @open="handleOpen" @close="handleClose"
         background-color="#545c64" text-color="#fff" active-text-color="#ffd04b" :collapse="isCollapse"
-        :collapse-transition="false">
+        :collapse-transition="false" :router="true">
         <el-menu-item index="1">
           <el-icon>
             <Position />
@@ -108,13 +108,13 @@ const rules = reactive({
             </el-icon>
             <span>考勤管理</span>
           </template>
-          <el-menu-item index="2-1">
+          <el-menu-item index="2-1" :route="{ name: 'myabsent' }">
             <el-icon>
               <User />
             </el-icon>
             <span>个人考勤</span>
           </el-menu-item>
-          <el-menu-item index="2-2">
+          <el-menu-item index="2-2" :route="{ name: 'subabsent' }">
             <el-icon>
               <User />
             </el-icon>
@@ -199,7 +199,9 @@ const rules = reactive({
         </div>
       </el-header>
       <!-- 主体 -->
-      <el-main class="main">Main</el-main>
+      <el-main class="main">
+        <router-view></router-view>
+      </el-main>
     </el-container>
   </el-container>
 

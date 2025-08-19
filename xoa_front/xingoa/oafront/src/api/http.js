@@ -44,7 +44,27 @@ class Http{
     }
 
     get(path, params) {
-        return this.instance.get(path, params)
+        return new Promise(async (resolve, reject) => {
+            try{
+                let result = await this.instance.get(path, params)
+                resolve(result)
+            }catch(err) {
+                let msg_data = err.response.data
+                reject(msg_data)
+            }
+        })
+    }
+
+    patch(path, data) {
+        return new Promise(async (resolve, reject) => {
+            try{
+                let result = await this.instance.patch(path, data)
+                resolve(result)
+            }catch(err) {
+                let msg_data = err.response.data
+                reject(msg_data)
+            }
+        })
     }
 }
 
