@@ -12,4 +12,4 @@ npm install @element-plus/icons-vue --save
 <!-- 富文本编辑器 -->
 npm install @wangeditor/editor-for-vue@next --save
 
-
+npm install echarts --save

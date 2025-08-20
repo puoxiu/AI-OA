@@ -7,6 +7,7 @@ import SubAbsent from '../views/absent/sub.vue'
 import InformList from '../views/inform/list.vue'
 import InformPublish from '../views/inform/publish.vue'
 import InformDetail from '../views/inform/detail.vue'
+import Home from '../views/home/home.vue'
 
 const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
@@ -16,6 +17,7 @@ const router = createRouter({
       name: 'frame',
       component: Frame,
       children: [
+        {path: '/', name: 'home', component: Home},
         {path: '/absent/my', name: 'myabsent', component: MyAbsent},
         {path: '/absent/sub',name: 'subabsent',component: SubAbsent},
         {path: '/inform/list',name: 'informlist',component: InformList},
