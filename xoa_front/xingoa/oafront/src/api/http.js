@@ -66,6 +66,18 @@ class Http{
             }
         })
     }
+
+    delete(path) {
+        return new Promise(async (resolve, reject) => {
+            try{
+                let result = await this.instance.delete(path);
+                resolve(result);
+            }catch(err) {
+                let msg_data = err.response.data; 
+                reject(msg_data || { msg: "请求失败" }); // 兜底错误信息
+            }
+        })
+    }
 }
 
 export default new Http()

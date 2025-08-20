@@ -6,6 +6,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import authHttp from '@/api/authHttp'
 
+
 const auth = useAuthStore()
 const router = useRouter()
 // console.log("嘿嘿", auth.user )
@@ -128,13 +129,13 @@ const rules = reactive({
             </el-icon>
             <span>通知管理</span>
           </template>
-          <el-menu-item index="3-1">
+          <el-menu-item index="3-1" :route="{ name: 'informpublish' }">
             <el-icon>
               <Edit />
             </el-icon>
             <span>发布通知</span>
           </el-menu-item>
-          <el-menu-item index="3-2">
+          <el-menu-item index="3-2" :route="{ name: 'informlist' }">
             <el-icon>
               <List />
             </el-icon>

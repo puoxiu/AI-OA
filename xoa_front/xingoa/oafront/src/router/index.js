@@ -4,6 +4,9 @@ import Frame from '../views/main/frame.vue'
 import { useAuthStore } from '@/stores/auth'
 import MyAbsent from '../views/absent/my.vue'
 import SubAbsent from '../views/absent/sub.vue'
+import InformList from '../views/inform/list.vue'
+import InformPublish from '../views/inform/publish.vue'
+import InformDetail from '../views/inform/detail.vue'
 
 const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
@@ -13,16 +16,11 @@ const router = createRouter({
       name: 'frame',
       component: Frame,
       children: [
-        {
-          path: '/absent/my',
-          name: 'myabsent',
-          component: MyAbsent
-        },
-        {
-          path: '/absent/sub',
-          name: 'subabsent',
-          component: SubAbsent
-        }
+        {path: '/absent/my', name: 'myabsent', component: MyAbsent},
+        {path: '/absent/sub',name: 'subabsent',component: SubAbsent},
+        {path: '/inform/list',name: 'informlist',component: InformList},
+        {path: '/inform/publish',name: 'informpublish',component: InformPublish},
+        {path: '/inform/:inform_id',name: 'informdetail',component: InformDetail},
       ]
     },
     {

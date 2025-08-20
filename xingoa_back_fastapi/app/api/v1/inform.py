@@ -19,7 +19,7 @@ router = APIRouter(
     tags=["通知管理"]
 )
 
-# 查询所有可见的通知
+# get all informs
 @router.get("/all", response_model=BaseResponse[List[InformsResponse]])
 async def get_informs(db_session: AsyncSession = Depends(get_db_session), current_user: OAUser = Depends(get_current_user)):
     try:
@@ -36,7 +36,7 @@ async def get_informs(db_session: AsyncSession = Depends(get_db_session), curren
         data=informs
     )
 
-# 创建新的通知
+# create new inform
 @router.post("/create_inform", response_model=BaseResponse[dict])
 async def create_inform(
     inform: InformCreateRequest,
@@ -44,7 +44,10 @@ async def create_inform(
     current_user: OAUser = Depends(get_current_user)
 ):
     try:
-        new_inform = await InformService.create_inform(db_session, inform.title, inform.content, inform.public, current_user)
+        new_inform = await InformService.create_inform(db_session, inform.title, inform.content, inform.department_ids, current_user)
+    except BizException as e:
+        app_logger.error(f"创建通知失败，用户：{current_user.id}，错误信息：{e}")
+        raise
     except Exception as e:
         app_logger.error(f"创建通知失败，用户：{current_user.id}，错误信息：{e}")
         raise BizException(ErrorCode.SERVER_ERROR, 500, "服务端错误")
@@ -59,12 +62,13 @@ async def create_inform(
             "title": new_inform.title,
             "content": new_inform.content,
             "public": new_inform.public,
+            "department_ids": [dept.id for dept in new_inform.departments] if new_inform.departments else [],
             "author_id": new_inform.author_id,
             "create_time": new_inform.create_time,
         }
     )
 
-# 读取通知内容并设置为已读
+# get inform by id and set it read
 @router.get("/{inform_id}", response_model=BaseResponse[dict])
 async def read_inform(
     inform_id: int,
@@ -109,3 +113,28 @@ async def read_inform(
     except Exception as e:
         app_logger.error(f"获取通知信息失败，用户：{current_user.id}，通知ID：{inform_id}，错误信息：{e}")
         raise BizException(ErrorCode.SERVER_ERROR, 500, "服务端错误")
+
+
+
+# 删除通知
+@router.delete("/delete_by_id/{inform_id}", response_model=BaseResponse[dict])
+async def delete_inform(
+    inform_id: int,
+    db_session: AsyncSession = Depends(get_db_session),
+    current_user: OAUser = Depends(get_current_user)
+):
+    try:
+        await InformService.delete_inform(db_session, current_user, inform_id)
+    except Exception as e:
+        app_logger.error(f"删除通知失败，用户：{current_user.id}，通知ID：{inform_id}，错误信息：{e}")
+        raise BizException(ErrorCode.SERVER_ERROR, 500, "服务端错误")
+    
+    app_logger.info(f"删除通知成功，通知ID：{inform_id}，用户：{current_user.id}")
+    
+    return BaseResponse(
+        code=ErrorCode.SUCCESS,
+        msg="删除通知成功",
+        data={
+            "id": inform_id,
+        }
+    )

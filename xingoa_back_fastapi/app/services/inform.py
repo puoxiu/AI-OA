@@ -4,9 +4,11 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy import or_
 
 
-from app.models.user import OAUser, OADepartment
+from app.models.user import OAUser, OADepartment, DepartmentUserRole
 from app.models.inform import Inform, InformRead, InformDepartment
 from app.schemas.inform import InformsResponse
+from app.exceptions import BizException
+from app.error import ErrorCode
 
 class InformService:
     @staticmethod
@@ -20,7 +22,9 @@ class InformService:
         query = (
             select(Inform)
             .options(
-                selectinload(Inform.author),
+                selectinload(Inform.author)
+                .selectinload(OAUser.department_roles)  # 加载作者的部门角色关联
+                .selectinload(DepartmentUserRole.department),  # 进一步加载部门详情
                 selectinload(Inform.departments)
             )
             .where(
@@ -48,6 +52,11 @@ class InformService:
                 title=inform.title,
                 author_id=inform.author_id,
                 author_name=inform.author.username,
+                is_public=inform.public,
+                author_department_name=(
+                    inform.author.department_roles[0].department.name 
+                    if inform.author.department_roles else "无部门"
+                ),
                 create_time=inform.create_time,
                 is_read=inform.id in read_ids
             )
@@ -102,21 +111,83 @@ class InformService:
         return read_record
 
     @staticmethod
-    async def create_inform(db_session: AsyncSession, title: str, content: str, public: bool, author: OAUser, departments: list[OADepartment] = None):
-        inform = Inform(title=title, content=content, public=public, author=author)
+    async def create_inform(db_session: AsyncSession, title: str, content: str,  department_ids: list[int], current_user: OAUser):
+        # 1. 处理公开逻辑（0表示全部可见）
+        public = 0 in department_ids
+        
+        # 2. 过滤无效部门ID（移除0和空值）
+        valid_department_ids = [
+            dept_id for dept_id in department_ids 
+            if dept_id is not None and dept_id != 0
+        ]
+        
+        # 3. 校验：非公开通知必须包含有效部门ID
+        if not public and not valid_department_ids:
+            raise BizException(ErrorCode.INVALID_PARAM, 400, "非公开通知必须指定至少一个部门")
+        
+        # 4. 创建通知主记录（暂不提交事务）
+        inform = Inform(
+            title=title,
+            content=content,
+            public=public,
+            author_id=current_user.id,  # 显式关联作者ID
+            author=current_user  # 关联作者对象（ORM自动同步）
+        )
         db_session.add(inform)
+        
+        # 5. 处理部门关联（非公开且有有效部门ID时）
+        if not public and valid_department_ids:
+            # 查询指定的部门是否存在
+            result = await db_session.execute(
+                select(OADepartment).where(OADepartment.id.in_(valid_department_ids))
+            )
+            departments = result.scalars().all()
+            
+            # 校验部门ID有效性
+            if len(departments) != len(valid_department_ids):
+                existing_ids = {dept.id for dept in departments}
+                invalid_ids = [dept_id for dept_id in valid_department_ids if dept_id not in existing_ids]
+                raise BizException(ErrorCode.PARAM_ERROR, 400, f"无效的部门ID：{invalid_ids}")
+            
+            # 创建通知-部门关联记录
+            for department in departments:
+                inform_department = InformDepartment(
+                    inform_id=inform.id,
+                    department_id=department.id,
+                )
+                db_session.add(inform_department)
+        
+        # 6. 一次性提交所有事务（通知主记录+关联记录）
         await db_session.commit()
         await db_session.refresh(inform)
-        if departments:
-            for department in departments:
-                inform_department = InformDepartment(inform=inform, department=department)
-                db_session.add(inform_department)
-        await db_session.commit()
+        
         return inform
 
 
     @staticmethod
-    async def delete_inform(db_session: AsyncSession, inform_id: int):
+    async def delete_inform(db_session: AsyncSession, current_user: OAUser, inform_id: int):
+        # 1. 校验通知是否存在
+        query = select(Inform).where(Inform.id == inform_id)
+        inform = await db_session.scalar(query)
+        if not inform:
+            raise BizException(ErrorCode.NOT_FOUND, 404, "通知不存在")
+
+        # 2. 校验用户是否有权限删除
+        if inform.author_id != current_user.id:
+            raise BizException(ErrorCode.NOT_PERMITTED, 403, "没有权限删除该通知")
+
+        # 3. 删除通知-部门关联记录
+        query = delete(InformDepartment).where(InformDepartment.inform_id == inform_id)
+        await db_session.execute(query)
+
+        # 4. 删除通知阅读记录
+        query = delete(InformRead).where(InformRead.inform_id == inform_id)
+        await db_session.execute(query)
+
+        # 5. 删除通知主记录
         query = delete(Inform).where(Inform.id == inform_id)
         await db_session.execute(query)
+
+        # 6. 提交事务
         await db_session.commit()
+        

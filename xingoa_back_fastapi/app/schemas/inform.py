@@ -7,7 +7,9 @@ class InformsResponse(BaseModel):
     title: str
     author_id: str
     author_name: str
+    author_department_name: str
     is_read: bool = False
+    is_public: bool = False
     create_time: datetime
 
     class Config:
@@ -31,7 +33,8 @@ class InformDetailResponse(BaseModel):
 class InformCreateRequest(BaseModel):
     title: str
     content: str
-    public: bool = True
+    # public: bool = True
+    department_ids: list[int] = []  # 指定可见的部门id，如果传入含有id=0 则说明所有部门可见
 
     class Config:
         # 作用: 从数据库模型转换为 Pydantic 模型时，自动映射字段
