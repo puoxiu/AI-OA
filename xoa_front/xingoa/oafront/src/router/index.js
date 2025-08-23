@@ -8,6 +8,8 @@ import InformList from '../views/inform/list.vue'
 import InformPublish from '../views/inform/publish.vue'
 import InformDetail from '../views/inform/detail.vue'
 import Home from '../views/home/home.vue'
+import sessionList from '../views/ai1/sessionList.vue'
+import chatting_room from '../views/ai1/chatting_room.vue'
 
 const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
@@ -23,6 +25,9 @@ const router = createRouter({
         {path: '/inform/list',name: 'informlist',component: InformList},
         {path: '/inform/publish',name: 'informpublish',component: InformPublish},
         {path: '/inform/:inform_id',name: 'informdetail',component: InformDetail},
+        // 新增路由--ai
+        {path: '/ai1',name: 'ai1',component: sessionList},
+        {path: '/ai1/chatting_room/:session_id',name: 'chatting_room',component: chatting_room},
       ]
     },
     {

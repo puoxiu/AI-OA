@@ -3,13 +3,13 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 from contextlib import asynccontextmanager
 from sqlalchemy import text
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from db.database import async_engine, Base
-from app.api.v1 import auth, absent, inform, staff, department, meeting_room, meeting_booking, home
+from app.api.v1 import auth, absent, inform, staff, department, meeting_room, meeting_booking, home, agent
 from app.exceptions import BizException
 from app.error import ErrorCode
 from app.core.logging import app_logger
@@ -98,9 +98,10 @@ app.include_router(department.router)
 app.include_router(meeting_room.router)
 app.include_router(meeting_booking.router)
 app.include_router(home.router)
+app.include_router(agent.router)
 
 # 测试邮箱发送路由
-@app.get("/test-email")
+@app.get("/test-email", tags=["测试"])
 async def test_email():
     from utils.mailer import send_email
     try:
@@ -111,6 +112,13 @@ async def test_email():
         app_logger.error(f"测试邮件发送失败: {e}")
         return {"message": f"测试邮件发送失败: {e}"}
 
+@app.get("/test-stream", tags=["测试"])
+async def test_stream():
+    from ai.call_llm import stream_llm
+    return StreamingResponse(
+        stream_llm(prompt="你好，介绍一下自己"),
+        media_type="text/event-stream"
+    )
 
 
 if __name__ == "__main__":

@@ -1,10 +1,11 @@
 <script setup name="Frame">
 import { ref, computed, reactive } from 'vue'
-import { Expand, Fold } from '@element-plus/icons-vue'
+import { ChatDotRound, ChatDotSquare, ChatLineRound, ChatRound, ChatSquare, Cpu, Expand, Fold } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import authHttp from '@/api/authHttp'
+import Chatting_room from '../ai1/chatting_room.vue'
 
 
 const auth = useAuthStore()
@@ -163,11 +164,11 @@ const rules = reactive({
           </el-menu-item>
         </el-sub-menu>
 
-        <el-menu-item index="5">
+        <el-menu-item index="5" :route="{ name: 'ai1' }">
           <el-icon>
-            <Cpu />
+            <ChatSquare /> 
           </el-icon>
-          <span>AI助手</span>
+          <span>ChatAI</span>
         </el-menu-item>
       </el-menu>
 

@@ -1,7 +1,10 @@
 
 data/
 __pycache__/
+.vscode/
 
 media/
 
 logs/
+
+.env
